@@ -1850,6 +1850,14 @@ config GPIO_SIM
 	  This enables the GPIO simulator - a configfs-based GPIO testing
 	  driver.
 
+config GPIO_VIRTUSER
+	tristate "GPIO Virtual User Testing Module"
+	select CONFIGFS_FS
+	select IRQ_WORK
+	help
+	  This enables the configurable, configfs-based virtual GPIO consumer
+	  testing driver.
+
 endmenu
 
 endif
