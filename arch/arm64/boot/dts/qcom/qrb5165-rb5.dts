@@ -46,6 +46,30 @@
 		regulator-always-on;
 	};
 
+	gpio-sim {
+		compatible = "gpio-simulator";
+
+		sim_gpios0: bank@0 {
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <8>;
+		};
+
+		sim_gpios1: bank@1 {
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <8>;
+		};
+	};
+
+	gpio-virtuser {
+		compatible = "gpio-virtuser";
+
+		reset-gpios = <&sim_gpios0 2 0>, <&sim_gpios1 4 0>;
+		dupa-gpios = <&sim_gpios0 5 0>;
+		inv-gpios = <&sim_gpios1 1 GPIO_ACTIVE_LOW>;
+	};
+
 	hdmi-out {
 		compatible = "hdmi-connector";
 		type = "a";
