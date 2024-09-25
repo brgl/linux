@@ -841,7 +841,7 @@ struct mm_struct *proc_mem_open(struct inode *inode, unsigned int mode)
 	put_task_struct(task);
 
 	if (IS_ERR(mm))
-		return PTR_ERR(mm) == -ESRCH ? NULL : mm;
+		return mm == ERR_PTR(-ESRCH) ? NULL : mm;
 
 	/* ensure this mm_struct can't be freed */
 	mmgrab(mm);
