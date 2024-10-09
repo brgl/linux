@@ -262,22 +262,21 @@ static noinline int lock_delalloc_folios(struct inode *inode,
 
 		for (i = 0; i < found_folios; i++) {
 			struct folio *folio = fbatch.folios[i];
-			u32 len = end + 1 - start;
+			u64 range_start = max_t(u64, folio_pos(folio), start);
+			u32 range_len = min_t(u64, folio_pos(folio) + folio_size(folio),
+					      end + 1) - range_start;
 
 			if (folio == locked_folio)
 				continue;
 
-			if (btrfs_folio_start_writer_lock(fs_info, folio, start,
-							  len))
-				goto out;
-
+			folio_lock(folio);
 			if (!folio_test_dirty(folio) || folio->mapping != mapping) {
-				btrfs_folio_end_writer_lock(fs_info, folio, start,
-							    len);
+				folio_unlock(folio);
 				goto out;
 			}
+			btrfs_folio_set_writer_lock(fs_info, folio, range_start, range_len);
 
-			processed_end = folio_pos(folio) + folio_size(folio) - 1;
+			processed_end = range_start + range_len - 1;
 		}
 		folio_batch_release(&fbatch);
 		cond_resched();
@@ -1359,7 +1358,7 @@ static int submit_one_sector(struct btrfs_inode *inode,
 	 * a folio for a range already written to disk.
 	 */
 	btrfs_folio_clear_dirty(fs_info, folio, filepos, sectorsize);
-	btrfs_set_range_writeback(inode, filepos, filepos + sectorsize - 1);
+	btrfs_folio_set_writeback(fs_info, folio, filepos, sectorsize);
 	/*
 	 * Above call should set the whole folio with writeback flag, even
 	 * just for a single subpage sector.
