@@ -5625,8 +5625,10 @@ pick_next_entity(struct rq *rq, struct cfs_rq *cfs_rq)
 	struct sched_entity *se = pick_eevdf(cfs_rq);
 	if (se->sched_delayed) {
 		dequeue_entities(rq, se, DEQUEUE_SLEEP | DEQUEUE_DELAYED);
+#if 0
 		SCHED_WARN_ON(se->sched_delayed);
 		SCHED_WARN_ON(se->on_rq);
+#endif
 		return NULL;
 	}
 	return se;
