@@ -3144,7 +3144,7 @@ static int __btrfs_free_extent(struct btrfs_trans_handle *trans,
 				break;
 			}
 
-			/* Quick path didn't find the EXTEMT/METADATA_ITEM */
+			/* Quick path didn't find the EXTENT/METADATA_ITEM */
 			if (path->slots[0] - extent_slot > 5)
 				break;
 			extent_slot--;
@@ -5165,8 +5165,16 @@ struct extent_buffer *btrfs_alloc_tree_block(struct btrfs_trans_handle *trans,
 			parent = ins.objectid;
 		flags |= BTRFS_BLOCK_FLAG_FULL_BACKREF;
 		owning_root = reloc_src_root;
-	} else
-		BUG_ON(parent > 0);
+	} else {
+		if (unlikely(parent > 0)) {
+			/*
+			 * Other roots than reloc tree don't expect start
+			 * offset of a parent block.
+			 */
+			ret = -EUCLEAN;
+			goto out_free_reserved;
+		}
+	}
 
 	if (root_objectid != BTRFS_TREE_LOG_OBJECTID) {
 		struct btrfs_delayed_extent_op *extent_op;
