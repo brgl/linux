@@ -3621,7 +3621,7 @@ nfsd4_encode_fattr4(struct svc_rqst *rqstp, struct xdr_stream *xdr,
 		args.change_attr = ncf->ncf_initial_cinfo;
 		nfs4_put_stid(&dp->dl_stid);
 	} else {
-		args.change_attr = nfsd4_change_attribute(&args.stat, d_inode(dentry));
+		args.change_attr = nfsd4_change_attribute(&args.stat);
 	}
 
 	if (err)
