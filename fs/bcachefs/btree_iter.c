@@ -748,8 +748,6 @@ static inline int btree_path_lock_root(struct btree_trans *trans,
 		ret = btree_node_lock(trans, path, &b->c,
 				      path->level, lock_type, trace_ip);
 		if (unlikely(ret)) {
-			if (bch2_err_matches(ret, BCH_ERR_lock_fail_root_changed))
-				continue;
 			if (bch2_err_matches(ret, BCH_ERR_transaction_restart))
 				return ret;
 			BUG();
@@ -1437,10 +1435,11 @@ void bch2_trans_updates_to_text(struct printbuf *buf, struct btree_trans *trans)
 	trans_for_each_update(trans, i) {
 		struct bkey_s_c old = { &i->old_k, i->old_v };
 
-		prt_printf(buf, "update: btree=%s cached=%u %pS\n",
-		       bch2_btree_id_str(i->btree_id),
-		       i->cached,
-		       (void *) i->ip_allocated);
+		prt_str(buf, "update: btree=");
+		bch2_btree_id_to_text(buf, i->btree_id);
+		prt_printf(buf, " cached=%u %pS\n",
+			   i->cached,
+			   (void *) i->ip_allocated);
 
 		prt_printf(buf, "  old ");
 		bch2_bkey_val_to_text(buf, trans->c, old);
@@ -1473,13 +1472,13 @@ static void bch2_btree_path_to_text_short(struct printbuf *out, struct btree_tra
 {
 	struct btree_path *path = trans->paths + path_idx;
 
-	prt_printf(out, "path: idx %3u ref %u:%u %c %c %c btree=%s l=%u pos ",
+	prt_printf(out, "path: idx %3u ref %u:%u %c %c %c ",
 		   path_idx, path->ref, path->intent_ref,
 		   path->preserve ? 'P' : ' ',
 		   path->should_be_locked ? 'S' : ' ',
-		   path->cached ? 'C' : 'B',
-		   bch2_btree_id_str(path->btree_id),
-		   path->level);
+		   path->cached ? 'C' : 'B');
+	bch2_btree_id_level_to_text(out, path->btree_id, path->level);
+	prt_str(out, " pos ");
 	bch2_bpos_to_text(out, path->pos);
 
 	if (!path->cached && btree_node_locked(path, path->level)) {
@@ -2293,6 +2292,12 @@ struct bkey_s_c bch2_btree_iter_peek_upto(struct btree_iter *iter, struct bpos e
 
 	bch2_btree_iter_verify_entry_exit(iter);
 
+	ret = trans_maybe_inject_restart(trans, _RET_IP_);
+	if (unlikely(ret)) {
+		k = bkey_s_c_err(ret);
+		goto out_no_locked;
+	}
+
 	while (1) {
 		k = __bch2_btree_iter_peek(iter, search_key);
 		if (unlikely(!k.k))
@@ -2381,9 +2386,9 @@ struct bkey_s_c bch2_btree_iter_peek_upto(struct btree_iter *iter, struct bpos e
 		else
 			iter_pos = bkey_max(iter->pos, bkey_start_pos(k.k));
 
-		if (unlikely(!(iter->flags & BTREE_ITER_is_extents)
-			     ? bkey_gt(iter_pos, end)
-			     : bkey_ge(iter_pos, end)))
+		if (unlikely(iter->flags & BTREE_ITER_all_snapshots	? bpos_gt(iter_pos, end) :
+			     iter->flags & BTREE_ITER_is_extents	? bkey_ge(iter_pos, end) :
+									  bkey_gt(iter_pos, end)))
 			goto end;
 
 		break;
@@ -2461,6 +2466,12 @@ struct bkey_s_c bch2_btree_iter_peek_prev(struct btree_iter *iter)
 
 	if (iter->flags & BTREE_ITER_with_journal)
 		return bkey_s_c_err(-BCH_ERR_btree_iter_with_journal_not_supported);
+
+	ret = trans_maybe_inject_restart(trans, _RET_IP_);
+	if (unlikely(ret)) {
+		k = bkey_s_c_err(ret);
+		goto out_no_locked;
+	}
 
 	bch2_btree_iter_verify(iter);
 	bch2_btree_iter_verify_entry_exit(iter);
@@ -2598,6 +2609,12 @@ struct bkey_s_c bch2_btree_iter_peek_slot(struct btree_iter *iter)
 	bch2_btree_iter_verify(iter);
 	bch2_btree_iter_verify_entry_exit(iter);
 	EBUG_ON(btree_iter_path(trans, iter)->level && (iter->flags & BTREE_ITER_with_key_cache));
+
+	ret = trans_maybe_inject_restart(trans, _RET_IP_);
+	if (unlikely(ret)) {
+		k = bkey_s_c_err(ret);
+		goto out_no_locked;
+	}
 
 	/* extents can't span inode numbers: */
 	if ((iter->flags & BTREE_ITER_is_extents) &&
@@ -2944,6 +2961,10 @@ void *__bch2_trans_kmalloc(struct btree_trans *trans, size_t size)
 
 	WARN_ON_ONCE(new_bytes > BTREE_TRANS_MEM_MAX);
 
+	ret = trans_maybe_inject_restart(trans, _RET_IP_);
+	if (ret)
+		return ERR_PTR(ret);
+
 	struct btree_transaction_stats *s = btree_trans_stats(trans);
 	s->max_mem = max(s->max_mem, new_bytes);
 
@@ -3001,7 +3022,8 @@ out_new_mem:
 
 	if (old_bytes) {
 		trace_and_count(c, trans_restart_mem_realloced, trans, _RET_IP_, new_bytes);
-		return ERR_PTR(btree_trans_restart(trans, BCH_ERR_transaction_restart_mem_realloced));
+		return ERR_PTR(btree_trans_restart_ip(trans,
+					BCH_ERR_transaction_restart_mem_realloced, _RET_IP_));
 	}
 out_change_top:
 	p = trans->mem + trans->mem_top;
@@ -3108,6 +3130,14 @@ u32 bch2_trans_begin(struct btree_trans *trans)
 		bch2_trans_srcu_unlock(trans);
 
 	trans->last_begin_ip = _RET_IP_;
+
+#ifdef CONFIG_BCACHEFS_INJECT_TRANSACTION_RESTARTS
+	if (trans->restarted) {
+		trans->restart_count_this_trans++;
+	} else {
+		trans->restart_count_this_trans = 0;
+	}
+#endif
 
 	trans_set_locked(trans);
 
@@ -3325,8 +3355,9 @@ bch2_btree_bkey_cached_common_to_text(struct printbuf *out,
 	pid = owner ? owner->pid : 0;
 	rcu_read_unlock();
 
-	prt_printf(out, "\t%px %c l=%u %s:", b, b->cached ? 'c' : 'b',
-		   b->level, bch2_btree_id_str(b->btree_id));
+	prt_printf(out, "\t%px %c ", b, b->cached ? 'c' : 'b');
+	bch2_btree_id_to_text(out, b->btree_id);
+	prt_printf(out, " l=%u:", b->level);
 	bch2_bpos_to_text(out, btree_node_pos(b));
 
 	prt_printf(out, "\t locks %u:%u:%u held by pid %u",
@@ -3365,11 +3396,11 @@ void bch2_btree_trans_to_text(struct printbuf *out, struct btree_trans *trans)
 		if (!path->nodes_locked)
 			continue;
 
-		prt_printf(out, "  path %u %c l=%u %s:",
-		       idx,
-		       path->cached ? 'c' : 'b',
-		       path->level,
-		       bch2_btree_id_str(path->btree_id));
+		prt_printf(out, "  path %u %c ",
+			   idx,
+			   path->cached ? 'c' : 'b');
+		bch2_btree_id_to_text(out, path->btree_id);
+		prt_printf(out, " l=%u:", path->level);
 		bch2_bpos_to_text(out, path->pos);
 		prt_newline(out);
 
