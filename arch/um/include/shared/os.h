@@ -199,15 +199,11 @@ extern int create_mem_file(unsigned long long len);
 extern void report_enomem(void);
 
 /* process.c */
-extern unsigned long os_process_pc(int pid);
-extern int os_process_parent(int pid);
 extern void os_alarm_process(int pid);
-extern void os_stop_process(int pid);
 extern void os_kill_process(int pid, int reap_child);
 extern void os_kill_ptraced_process(int pid, int reap_child);
 
 extern int os_getpid(void);
-extern int os_getpgrp(void);
 
 extern void init_new_thread_signals(void);
 
@@ -289,7 +285,7 @@ int protect(struct mm_id *mm_idp, unsigned long addr,
 /* skas/process.c */
 extern int is_skas_winch(int pid, int fd, void *data);
 extern int start_userspace(unsigned long stub_stack);
-extern void userspace(struct uml_pt_regs *regs, unsigned long *aux_fp_regs);
+extern void userspace(struct uml_pt_regs *regs);
 extern void new_thread(void *stack, jmp_buf *buf, void (*handler)(void));
 extern void switch_threads(jmp_buf *me, jmp_buf *you);
 extern int start_idle_thread(void *stack, jmp_buf *switch_buf);
@@ -328,9 +324,6 @@ extern int __ignore_sigio_fd(int fd);
 
 /* tty.c */
 extern int get_pty(void);
-
-/* sys-$ARCH/task_size.c */
-extern unsigned long os_get_top_address(void);
 
 long syscall(long number, ...);
 
