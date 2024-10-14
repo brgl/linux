@@ -184,6 +184,7 @@ static DEFINE_MUTEX(bch_fs_list_lock);
 
 DECLARE_WAIT_QUEUE_HEAD(bch2_read_only_wait);
 
+static void bch2_dev_unlink(struct bch_dev *);
 static void bch2_dev_free(struct bch_dev *);
 static int bch2_dev_alloc(struct bch_fs *, unsigned);
 static int bch2_dev_sysfs_online(struct bch_fs *, struct bch_dev *);
@@ -620,9 +621,7 @@ void __bch2_fs_stop(struct bch_fs *c)
 	up_write(&c->state_lock);
 
 	for_each_member_device(c, ca)
-		if (ca->kobj.state_in_sysfs &&
-		    ca->disk_sb.bdev)
-			sysfs_remove_link(bdev_kobj(ca->disk_sb.bdev), "bcachefs");
+		bch2_dev_unlink(ca);
 
 	if (c->kobj.state_in_sysfs)
 		kobject_del(&c->kobj);
@@ -766,6 +765,7 @@ static struct bch_fs *bch2_fs_alloc(struct bch_sb *sb, struct bch_opts opts)
 
 	refcount_set(&c->ro_ref, 1);
 	init_waitqueue_head(&c->ro_ref_wait);
+	spin_lock_init(&c->recovery_pass_lock);
 	sema_init(&c->online_fsck_mutex, 1);
 
 	init_rwsem(&c->gc_lock);
@@ -1120,12 +1120,12 @@ static int bch2_dev_in_fs(struct bch_sb_handle *fs,
 
 		prt_bdevname(&buf, fs->bdev);
 		prt_char(&buf, ' ');
-		bch2_prt_datetime(&buf, le64_to_cpu(fs->sb->write_time));;
+		bch2_prt_datetime(&buf, le64_to_cpu(fs->sb->write_time));
 		prt_newline(&buf);
 
 		prt_bdevname(&buf, sb->bdev);
 		prt_char(&buf, ' ');
-		bch2_prt_datetime(&buf, le64_to_cpu(sb->sb->write_time));;
+		bch2_prt_datetime(&buf, le64_to_cpu(sb->sb->write_time));
 		prt_newline(&buf);
 
 		if (!opts->no_splitbrain_check)
@@ -1187,9 +1187,7 @@ static void bch2_dev_free(struct bch_dev *ca)
 {
 	cancel_work_sync(&ca->io_error_work);
 
-	if (ca->kobj.state_in_sysfs &&
-	    ca->disk_sb.bdev)
-		sysfs_remove_link(bdev_kobj(ca->disk_sb.bdev), "bcachefs");
+	bch2_dev_unlink(ca);
 
 	if (ca->kobj.state_in_sysfs)
 		kobject_del(&ca->kobj);
@@ -1226,10 +1224,7 @@ static void __bch2_dev_offline(struct bch_fs *c, struct bch_dev *ca)
 	percpu_ref_kill(&ca->io_ref);
 	wait_for_completion(&ca->io_ref_completion);
 
-	if (ca->kobj.state_in_sysfs) {
-		sysfs_remove_link(bdev_kobj(ca->disk_sb.bdev), "bcachefs");
-		sysfs_remove_link(&ca->kobj, "block");
-	}
+	bch2_dev_unlink(ca);
 
 	bch2_free_super(&ca->disk_sb);
 	bch2_dev_journal_exit(ca);
@@ -1249,6 +1244,26 @@ static void bch2_dev_io_ref_complete(struct percpu_ref *ref)
 	struct bch_dev *ca = container_of(ref, struct bch_dev, io_ref);
 
 	complete(&ca->io_ref_completion);
+}
+
+static void bch2_dev_unlink(struct bch_dev *ca)
+{
+	struct kobject *b;
+
+	/*
+	 * This is racy w.r.t. the underlying block device being hot-removed,
+	 * which removes it from sysfs.
+	 *
+	 * It'd be lovely if we had a way to handle this race, but the sysfs
+	 * code doesn't appear to provide a good method and block/holder.c is
+	 * susceptible as well:
+	 */
+	if (ca->kobj.state_in_sysfs &&
+	    ca->disk_sb.bdev &&
+	    (b = bdev_kobj(ca->disk_sb.bdev))->state_in_sysfs) {
+		sysfs_remove_link(b, "bcachefs");
+		sysfs_remove_link(&ca->kobj, "block");
+	}
 }
 
 static int bch2_dev_sysfs_online(struct bch_fs *c, struct bch_dev *ca)

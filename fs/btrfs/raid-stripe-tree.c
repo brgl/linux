@@ -108,8 +108,9 @@ static int update_raid_extent_item(struct btrfs_trans_handle *trans,
 	return ret;
 }
 
-static int btrfs_insert_one_raid_extent(struct btrfs_trans_handle *trans,
-					struct btrfs_io_context *bioc)
+EXPORT_FOR_TESTS
+int btrfs_insert_one_raid_extent(struct btrfs_trans_handle *trans,
+				 struct btrfs_io_context *bioc)
 {
 	struct btrfs_fs_info *fs_info = trans->fs_info;
 	struct btrfs_key stripe_key;
@@ -233,7 +234,7 @@ int btrfs_get_raid_extent_offset(struct btrfs_fs_info *fs_info,
 		found_end = found_logical + found_length;
 
 		if (found_logical > end) {
-			ret = -ENOENT;
+			ret = -ENODATA;
 			goto out;
 		}
 
@@ -279,10 +280,10 @@ int btrfs_get_raid_extent_offset(struct btrfs_fs_info *fs_info,
 	}
 
 	/* If we're here, we haven't found the requested devid in the stripe. */
-	ret = -ENOENT;
+	ret = -ENODATA;
 out:
 	if (ret > 0)
-		ret = -ENOENT;
+		ret = -ENODATA;
 	if (ret && ret != -EIO && !stripe->rst_search_commit_root) {
 		btrfs_debug(fs_info,
 		"cannot find raid-stripe for logical [%llu, %llu] devid %llu, profile %s",

@@ -2198,7 +2198,8 @@ static struct file_system_type btrfs_fs_type = {
 	.init_fs_context	= btrfs_init_fs_context,
 	.parameters		= btrfs_fs_parameters,
 	.kill_sb		= btrfs_kill_super,
-	.fs_flags		= FS_REQUIRES_DEV | FS_BINARY_MOUNTDATA | FS_ALLOW_IDMAP,
+	.fs_flags		= FS_REQUIRES_DEV | FS_BINARY_MOUNTDATA |
+				  FS_ALLOW_IDMAP | FS_MGTIME,
  };
 
 MODULE_ALIAS_FS("btrfs");
@@ -2403,10 +2404,10 @@ static long btrfs_nr_cached_objects(struct super_block *sb, struct shrink_contro
 	trace_btrfs_extent_map_shrinker_count(fs_info, nr);
 
 	/*
-	 * Only report the real number for DEBUG builds, as there are reports of
-	 * serious performance degradation caused by too frequent shrinks.
+	 * Only report the real number for EXPERIMENTAL builds, as there are
+	 * reports of serious performance degradation caused by too frequent shrinks.
 	 */
-	if (IS_ENABLED(CONFIG_BTRFS_DEBUG))
+	if (IS_ENABLED(CONFIG_BTRFS_EXPERIMENTAL))
 		return nr;
 	return 0;
 }
