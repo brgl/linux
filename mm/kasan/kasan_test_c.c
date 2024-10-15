@@ -1960,8 +1960,10 @@ static void copy_to_kernel_nofault_oob(struct kunit *test)
 	char buf[128];
 	size_t size = sizeof(buf);
 
-	/* This test currently fails with the HW_TAGS mode.
-	 * The reason is unknown and needs to be investigated. */
+	/*
+	 * This test currently fails with the HW_TAGS mode. The reason is
+	 * unknown and needs to be investigated.
+	 */
 	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_KASAN_HW_TAGS);
 
 	ptr = kmalloc(size - KASAN_GRANULE_SIZE, GFP_KERNEL);
@@ -1969,16 +1971,16 @@ static void copy_to_kernel_nofault_oob(struct kunit *test)
 	OPTIMIZER_HIDE_VAR(ptr);
 
 	/*
-	* We test copy_to_kernel_nofault() to detect corrupted memory that is
-	* being written into the kernel. In contrast, copy_from_kernel_nofault()
-	* is primarily used in kernel helper functions where the source address
-	* might be random or uninitialized. Applying KASAN instrumentation to
-	* copy_from_kernel_nofault() could lead to false positives.
-	* By focusing KASAN checks only on copy_to_kernel_nofault(),
-	* we ensure that only valid memory is written to the kernel,
-	* minimizing the risk of kernel corruption while avoiding
-	* false positives in the reverse case.
-	*/
+	 * We test copy_to_kernel_nofault() to detect corrupted memory that is
+	 * being written into the kernel. In contrast,
+	 * copy_from_kernel_nofault() is primarily used in kernel helper
+	 * functions where the source address might be random or uninitialized.
+	 * Applying KASAN instrumentation to copy_from_kernel_nofault() could
+	 * lead to false positives.  By focusing KASAN checks only on
+	 * copy_to_kernel_nofault(), we ensure that only valid memory is
+	 * written to the kernel, minimizing the risk of kernel corruption
+	 * while avoiding false positives in the reverse case.
+	 */
 	KUNIT_EXPECT_KASAN_FAIL(test,
 		copy_to_kernel_nofault(&buf[0], ptr, size));
 	KUNIT_EXPECT_KASAN_FAIL(test,
