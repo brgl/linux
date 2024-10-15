@@ -1556,7 +1556,7 @@ int __must_check pci_bus_alloc_resource(struct pci_bus *bus,
 			void *alignf_data);
 
 
-int pci_register_io_range(struct fwnode_handle *fwnode, phys_addr_t addr,
+int pci_register_io_range(const struct fwnode_handle *fwnode, phys_addr_t addr,
 			resource_size_t size);
 unsigned long pci_address_to_pio(phys_addr_t addr);
 phys_addr_t pci_pio_to_address(unsigned long pio);
