@@ -9,7 +9,7 @@
 #include <linux/tracepoint.h>
 
 
-DECLARE_EVENT_CLASS(memcg_rstat,
+DECLARE_EVENT_CLASS(memcg_rstat_stats,
 
 	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
 
@@ -31,23 +31,45 @@ DECLARE_EVENT_CLASS(memcg_rstat,
 		  __entry->id, __entry->item, __entry->val)
 );
 
-DEFINE_EVENT(memcg_rstat, mod_memcg_state,
+DEFINE_EVENT(memcg_rstat_stats, mod_memcg_state,
 
 	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
 
 	TP_ARGS(memcg, item, val)
 );
 
-DEFINE_EVENT(memcg_rstat, mod_memcg_lruvec_state,
+DEFINE_EVENT(memcg_rstat_stats, mod_memcg_lruvec_state,
 
 	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
 
 	TP_ARGS(memcg, item, val)
 );
 
-DEFINE_EVENT(memcg_rstat, count_memcg_events,
+DECLARE_EVENT_CLASS(memcg_rstat_events,
 
-	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
+	TP_PROTO(struct mem_cgroup *memcg, int item, unsigned long val),
+
+	TP_ARGS(memcg, item, val),
+
+	TP_STRUCT__entry(
+		__field(u64, id)
+		__field(int, item)
+		__field(unsigned long, val)
+	),
+
+	TP_fast_assign(
+		__entry->id = cgroup_id(memcg->css.cgroup);
+		__entry->item = item;
+		__entry->val = val;
+	),
+
+	TP_printk("memcg_id=%llu item=%d val=%lu",
+		  __entry->id, __entry->item, __entry->val)
+);
+
+DEFINE_EVENT(memcg_rstat_events, count_memcg_events,
+
+	TP_PROTO(struct mem_cgroup *memcg, int item, unsigned long val),
 
 	TP_ARGS(memcg, item, val)
 );
