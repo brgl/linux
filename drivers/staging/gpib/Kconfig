@@ -131,6 +131,7 @@ config GPIB_FMH
        select GPIB_COMMON
        select GPIB_NEC7210
        depends on OF && PCI
+       depends on BROKEN
        help
          GPIB driver for fmhess FPGA based devices
 
