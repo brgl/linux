@@ -1252,6 +1252,10 @@ static const struct platform_desc bmg_desc = {
 	PLATFORM(BATTLEMAGE),
 };
 
+static const struct platform_desc ptl_desc = {
+	PLATFORM(PANTHERLAKE),
+};
+
 __diag_pop();
 
 /*
@@ -1318,9 +1322,11 @@ static const struct {
 	INTEL_RPLU_IDS(INTEL_DISPLAY_DEVICE, &adl_p_desc),
 	INTEL_RPLP_IDS(INTEL_DISPLAY_DEVICE, &adl_p_desc),
 	INTEL_DG2_IDS(INTEL_DISPLAY_DEVICE, &dg2_desc),
+	INTEL_ARL_IDS(INTEL_DISPLAY_DEVICE, &mtl_desc),
 	INTEL_MTL_IDS(INTEL_DISPLAY_DEVICE, &mtl_desc),
 	INTEL_LNL_IDS(INTEL_DISPLAY_DEVICE, &lnl_desc),
 	INTEL_BMG_IDS(INTEL_DISPLAY_DEVICE, &bmg_desc),
+	INTEL_PTL_IDS(INTEL_DISPLAY_DEVICE, &ptl_desc),
 };
 
 static const struct {
@@ -1331,6 +1337,7 @@ static const struct {
 	{ 14,  0, &xe_lpdp_display },
 	{ 14,  1, &xe2_hpd_display },
 	{ 20,  0, &xe2_lpd_display },
+	{ 30,  0, &xe2_lpd_display },
 };
 
 static const struct intel_display_device_info *
@@ -1531,6 +1538,7 @@ void intel_display_device_remove(struct drm_i915_private *i915)
 
 static void __intel_display_device_info_runtime_init(struct drm_i915_private *i915)
 {
+	struct intel_display *display = &i915->display;
 	struct intel_display_runtime_info *display_runtime = DISPLAY_RUNTIME_INFO(i915);
 	enum pipe pipe;
 
@@ -1677,7 +1685,7 @@ static void __intel_display_device_info_runtime_init(struct drm_i915_private *i9
 		}
 	}
 
-	display_runtime->rawclk_freq = intel_read_rawclk(i915);
+	display_runtime->rawclk_freq = intel_read_rawclk(display);
 	drm_dbg_kms(&i915->drm, "rawclk rate: %d kHz\n", display_runtime->rawclk_freq);
 
 	return;
