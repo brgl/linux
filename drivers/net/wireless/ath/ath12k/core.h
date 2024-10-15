@@ -451,7 +451,7 @@ struct ath12k_sta {
 	u32 smps;
 	enum hal_pn_type pn_type;
 
-	struct work_struct update_wk;
+	struct wiphy_work update_wk;
 	struct rate_info txrate;
 	struct rate_info last_txrate;
 	u64 rx_duration;
@@ -562,10 +562,7 @@ struct ath12k {
 	u32 num_stations;
 	u32 max_num_stations;
 	bool monitor_present;
-	/* To synchronize concurrent synchronous mac80211 callback operations,
-	 * concurrent debugfs configuration and concurrent FW statistics events.
-	 */
-	struct mutex conf_mutex;
+
 	/* protects the radio specific data like debug stats, ppdu_stats_info stats,
 	 * vdev_stop_status info, scan data, ath12k_sta info, ath12k_vif info,
 	 * channel context data, survey info, test mode data.
