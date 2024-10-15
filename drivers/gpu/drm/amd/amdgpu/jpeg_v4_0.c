@@ -48,13 +48,13 @@ static void jpeg_v4_0_dec_ring_set_wptr(struct amdgpu_ring *ring);
 /**
  * jpeg_v4_0_early_init - set function pointers
  *
- * @handle: amdgpu_device pointer
+ * @ip_block: Pointer to the amdgpu_ip_block for this hw instance.
  *
  * Set ring and irq function pointers
  */
-static int jpeg_v4_0_early_init(void *handle)
+static int jpeg_v4_0_early_init(struct amdgpu_ip_block *ip_block)
 {
-	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+	struct amdgpu_device *adev = ip_block->adev;
 
 
 	adev->jpeg.num_jpeg_inst = 1;
@@ -70,13 +70,13 @@ static int jpeg_v4_0_early_init(void *handle)
 /**
  * jpeg_v4_0_sw_init - sw init for JPEG block
  *
- * @handle: amdgpu_device pointer
+ * @ip_block: Pointer to the amdgpu_ip_block for this hw instance.
  *
  * Load firmware and sw initialization
  */
-static int jpeg_v4_0_sw_init(void *handle)
+static int jpeg_v4_0_sw_init(struct amdgpu_ip_block *ip_block)
 {
-	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+	struct amdgpu_device *adev = ip_block->adev;
 	struct amdgpu_ring *ring;
 	int r;
 
@@ -130,13 +130,13 @@ static int jpeg_v4_0_sw_init(void *handle)
 /**
  * jpeg_v4_0_sw_fini - sw fini for JPEG block
  *
- * @handle: amdgpu_device pointer
+ * @ip_block: Pointer to the amdgpu_ip_block for this hw instance.
  *
  * JPEG suspend and free up sw allocation
  */
-static int jpeg_v4_0_sw_fini(void *handle)
+static int jpeg_v4_0_sw_fini(struct amdgpu_ip_block *ip_block)
 {
-	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+	struct amdgpu_device *adev = ip_block->adev;
 	int r;
 
 	r = amdgpu_jpeg_suspend(adev);
@@ -151,12 +151,12 @@ static int jpeg_v4_0_sw_fini(void *handle)
 /**
  * jpeg_v4_0_hw_init - start and test JPEG block
  *
- * @handle: amdgpu_device pointer
+ * @ip_block: Pointer to the amdgpu_ip_block for this hw instance.
  *
  */
-static int jpeg_v4_0_hw_init(void *handle)
+static int jpeg_v4_0_hw_init(struct amdgpu_ip_block *ip_block)
 {
-	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+	struct amdgpu_device *adev = ip_block->adev;
 	struct amdgpu_ring *ring = adev->jpeg.inst->ring_dec;
 	int r;
 
@@ -187,13 +187,13 @@ static int jpeg_v4_0_hw_init(void *handle)
 /**
  * jpeg_v4_0_hw_fini - stop the hardware block
  *
- * @handle: amdgpu_device pointer
+ * @ip_block: Pointer to the amdgpu_ip_block for this hw instance.
  *
  * Stop the JPEG block, mark ring as not ready any more
  */
-static int jpeg_v4_0_hw_fini(void *handle)
+static int jpeg_v4_0_hw_fini(struct amdgpu_ip_block *ip_block)
 {
-	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+	struct amdgpu_device *adev = ip_block->adev;
 
 	cancel_delayed_work_sync(&adev->vcn.idle_work);
 	if (!amdgpu_sriov_vf(adev)) {
@@ -210,20 +210,19 @@ static int jpeg_v4_0_hw_fini(void *handle)
 /**
  * jpeg_v4_0_suspend - suspend JPEG block
  *
- * @handle: amdgpu_device pointer
+ * @ip_block: Pointer to the amdgpu_ip_block for this hw instance.
  *
  * HW fini and suspend JPEG block
  */
-static int jpeg_v4_0_suspend(void *handle)
+static int jpeg_v4_0_suspend(struct amdgpu_ip_block *ip_block)
 {
-	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
 	int r;
 
-	r = jpeg_v4_0_hw_fini(adev);
+	r = jpeg_v4_0_hw_fini(ip_block);
 	if (r)
 		return r;
 
-	r = amdgpu_jpeg_suspend(adev);
+	r = amdgpu_jpeg_suspend(ip_block->adev);
 
 	return r;
 }
@@ -231,20 +230,19 @@ static int jpeg_v4_0_suspend(void *handle)
 /**
  * jpeg_v4_0_resume - resume JPEG block
  *
- * @handle: amdgpu_device pointer
+ * @ip_block: Pointer to the amdgpu_ip_block for this hw instance.
  *
  * Resume firmware and hw init JPEG block
  */
-static int jpeg_v4_0_resume(void *handle)
+static int jpeg_v4_0_resume(struct amdgpu_ip_block *ip_block)
 {
-	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
 	int r;
 
-	r = amdgpu_jpeg_resume(adev);
+	r = amdgpu_jpeg_resume(ip_block->adev);
 	if (r)
 		return r;
 
-	r = jpeg_v4_0_hw_init(adev);
+	r = jpeg_v4_0_hw_init(ip_block);
 
 	return r;
 }
@@ -621,9 +619,9 @@ static bool jpeg_v4_0_is_idle(void *handle)
 	return ret;
 }
 
-static int jpeg_v4_0_wait_for_idle(void *handle)
+static int jpeg_v4_0_wait_for_idle(struct amdgpu_ip_block *ip_block)
 {
-	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+	struct amdgpu_device *adev = ip_block->adev;
 
 	return SOC15_WAIT_ON_RREG(JPEG, 0, regUVD_JRBC_STATUS,
 		UVD_JRBC_STATUS__RB_JOB_DONE_MASK,

@@ -493,10 +493,10 @@ const struct drm_mode_config_funcs amdgpu_vkms_mode_funcs = {
 	.atomic_commit = drm_atomic_helper_commit,
 };
 
-static int amdgpu_vkms_sw_init(void *handle)
+static int amdgpu_vkms_sw_init(struct amdgpu_ip_block *ip_block)
 {
 	int r, i;
-	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+	struct amdgpu_device *adev = ip_block->adev;
 
 	adev->amdgpu_vkms_output = kcalloc(adev->mode_info.num_crtc,
 		sizeof(struct amdgpu_vkms_output), GFP_KERNEL);
@@ -536,9 +536,9 @@ static int amdgpu_vkms_sw_init(void *handle)
 	return 0;
 }
 
-static int amdgpu_vkms_sw_fini(void *handle)
+static int amdgpu_vkms_sw_fini(struct amdgpu_ip_block *ip_block)
 {
-	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+	struct amdgpu_device *adev = ip_block->adev;
 	int i = 0;
 
 	for (i = 0; i < adev->mode_info.num_crtc; i++)
@@ -555,9 +555,9 @@ static int amdgpu_vkms_sw_fini(void *handle)
 	return 0;
 }
 
-static int amdgpu_vkms_hw_init(void *handle)
+static int amdgpu_vkms_hw_init(struct amdgpu_ip_block *ip_block)
 {
-	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+	struct amdgpu_device *adev = ip_block->adev;
 
 	switch (adev->asic_type) {
 #ifdef CONFIG_DRM_AMDGPU_SI
@@ -600,31 +600,30 @@ static int amdgpu_vkms_hw_init(void *handle)
 	return 0;
 }
 
-static int amdgpu_vkms_hw_fini(void *handle)
+static int amdgpu_vkms_hw_fini(struct amdgpu_ip_block *ip_block)
 {
 	return 0;
 }
 
-static int amdgpu_vkms_suspend(void *handle)
+static int amdgpu_vkms_suspend(struct amdgpu_ip_block *ip_block)
 {
-	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
+	struct amdgpu_device *adev = ip_block->adev;
 	int r;
 
 	r = drm_mode_config_helper_suspend(adev_to_drm(adev));
 	if (r)
 		return r;
-	return amdgpu_vkms_hw_fini(handle);
+	return amdgpu_vkms_hw_fini(ip_block);
 }
 
-static int amdgpu_vkms_resume(void *handle)
+static int amdgpu_vkms_resume(struct amdgpu_ip_block *ip_block)
 {
-	struct amdgpu_device *adev = (struct amdgpu_device *)handle;
 	int r;
 
-	r = amdgpu_vkms_hw_init(handle);
+	r = amdgpu_vkms_hw_init(ip_block);
 	if (r)
 		return r;
-	return drm_mode_config_helper_resume(adev_to_drm(adev));
+	return drm_mode_config_helper_resume(adev_to_drm(ip_block->adev));
 }
 
 static bool amdgpu_vkms_is_idle(void *handle)
@@ -632,12 +631,12 @@ static bool amdgpu_vkms_is_idle(void *handle)
 	return true;
 }
 
-static int amdgpu_vkms_wait_for_idle(void *handle)
+static int amdgpu_vkms_wait_for_idle(struct amdgpu_ip_block *ip_block)
 {
 	return 0;
 }
 
-static int amdgpu_vkms_soft_reset(void *handle)
+static int amdgpu_vkms_soft_reset(struct amdgpu_ip_block *ip_block)
 {
 	return 0;
 }
