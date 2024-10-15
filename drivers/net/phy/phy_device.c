@@ -3421,6 +3421,16 @@ static int of_phy_leds(struct phy_device *phydev)
 	if (!leds)
 		return 0;
 
+	/* Check if the PHY driver have at least an OP to
+	 * set the LEDs.
+	 */
+	if (!(phydev->drv->led_brightness_set ||
+	      phydev->drv->led_blink_set ||
+	      phydev->drv->led_hw_control_set)) {
+		phydev_dbg(phydev, "ignoring leds node defined with no PHY driver support\n");
+		goto exit;
+	}
+
 	for_each_available_child_of_node_scoped(leds, led) {
 		err = of_phy_led(phydev, led);
 		if (err) {
@@ -3430,6 +3440,7 @@ static int of_phy_leds(struct phy_device *phydev)
 		}
 	}
 
+exit:
 	of_node_put(leds);
 	return 0;
 }
@@ -3608,6 +3619,9 @@ static int phy_probe(struct device *dev)
 	 * the PHY stop advertising these mode later on
 	 */
 	of_set_phy_eee_broken(phydev);
+
+	/* Get master/slave strap overrides */
+	of_set_phy_timing_role(phydev);
 
 	/* The Pause Frame bits indicate that the PHY can support passing
 	 * pause frames. During autonegotiation, the PHYs will determine if
