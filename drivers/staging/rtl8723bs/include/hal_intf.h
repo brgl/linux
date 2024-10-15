@@ -162,44 +162,11 @@ enum hal_intf_ps_func {
 typedef s32 (*c2h_id_filter)(u8 *c2h_evt);
 
 struct hal_ops {
-	u32 (*hal_power_on)(struct adapter *padapter);
-	void (*hal_power_off)(struct adapter *padapter);
-	u32 (*hal_init)(struct adapter *padapter);
-	u32 (*hal_deinit)(struct adapter *padapter);
-
-	void (*free_hal_data)(struct adapter *padapter);
-
-	u32 (*inirp_init)(struct adapter *padapter);
-	u32 (*inirp_deinit)(struct adapter *padapter);
-	void (*irp_reset)(struct adapter *padapter);
-
-	s32	(*init_xmit_priv)(struct adapter *padapter);
-	void (*free_xmit_priv)(struct adapter *padapter);
-
-	s32	(*init_recv_priv)(struct adapter *padapter);
-	void (*free_recv_priv)(struct adapter *padapter);
-
-	void (*dm_init)(struct adapter *padapter);
-	void (*dm_deinit)(struct adapter *padapter);
-	void (*read_chip_version)(struct adapter *padapter);
-
-	void (*init_default_value)(struct adapter *padapter);
-
-	void (*intf_chip_configure)(struct adapter *padapter);
-
-	void (*read_adapter_info)(struct adapter *padapter);
-
-	void (*enable_interrupt)(struct adapter *padapter);
-	void (*disable_interrupt)(struct adapter *padapter);
 	u8 (*check_ips_status)(struct adapter *padapter);
-	s32		(*interrupt_handler)(struct adapter *padapter);
-	void    (*clear_interrupt)(struct adapter *padapter);
-	void (*set_bwmode_handler)(struct adapter *padapter, enum channel_width Bandwidth, u8 Offset);
 	void (*set_channel_handler)(struct adapter *padapter, u8 channel);
 	void (*set_chnl_bw_handler)(struct adapter *padapter, u8 channel, enum channel_width Bandwidth, u8 Offset40, u8 Offset80);
 
 	void (*set_tx_power_level_handler)(struct adapter *padapter, u8 channel);
-	void (*get_tx_power_level_handler)(struct adapter *padapter, s32 *powerlevel);
 
 	void (*hal_dm_watchdog)(struct adapter *padapter);
 	void (*hal_dm_watchdog_in_lps)(struct adapter *padapter);
@@ -213,7 +180,6 @@ struct hal_ops {
 	u8 (*GetHalDefVarHandler)(struct adapter *padapter, enum hal_def_variable eVariable, void *pValue);
 	u8 (*SetHalDefVarHandler)(struct adapter *padapter, enum hal_def_variable eVariable, void *pValue);
 
-	void (*GetHalODMVarHandler)(struct adapter *padapter, enum hal_odm_variable eVariable, void *pValue1, void *pValue2);
 	void (*SetHalODMVarHandler)(struct adapter *padapter, enum hal_odm_variable eVariable, void *pValue1, bool bSet);
 
 	void (*UpdateRAMaskHandler)(struct adapter *padapter, u32 mac_id, u8 rssi_level);
@@ -223,8 +189,6 @@ struct hal_ops {
 
 	void (*run_thread)(struct adapter *padapter);
 	void (*cancel_thread)(struct adapter *padapter);
-
-	u8 (*interface_ps_func)(struct adapter *padapter, enum hal_intf_ps_func efunc_id, u8 *val);
 
 	s32	(*hal_xmit)(struct adapter *padapter, struct xmit_frame *pxmitframe);
 	/*
@@ -239,7 +203,6 @@ struct hal_ops {
 	void (*write_rfreg)(struct adapter *padapter, u8 eRFPath, u32 RegAddr, u32 BitMask, u32 Data);
 
 	void (*EfusePowerSwitch)(struct adapter *padapter, u8 bWrite, u8 PwrState);
-	void (*BTEfusePowerSwitch)(struct adapter *padapter, u8 bWrite, u8 PwrState);
 	void (*ReadEFuse)(struct adapter *padapter, u8 efuseType, u16 _offset, u16 _size_byte, u8 *pbuf, bool bPseudoTest);
 	void (*EFUSEGetEfuseDefinition)(struct adapter *padapter, u8 efuseType, u8 type, void *pOut, bool bPseudoTest);
 	u16 (*EfuseGetCurrentSize)(struct adapter *padapter, u8 efuseType, bool bPseudoTest);

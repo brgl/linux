@@ -290,19 +290,9 @@ inline void rtw_set_oper_ch(struct adapter *adapter, u8 ch)
 	dvobj->oper_channel = ch;
 }
 
-inline u8 rtw_get_oper_bw(struct adapter *adapter)
-{
-	return adapter_to_dvobj(adapter)->oper_bwmode;
-}
-
 inline void rtw_set_oper_bw(struct adapter *adapter, u8 bw)
 {
 	adapter_to_dvobj(adapter)->oper_bwmode = bw;
-}
-
-inline u8 rtw_get_oper_choffset(struct adapter *adapter)
-{
-	return adapter_to_dvobj(adapter)->oper_ch_offset;
 }
 
 inline void rtw_set_oper_choffset(struct adapter *adapter, u8 offset)
@@ -443,34 +433,6 @@ void invalidate_cam_all(struct adapter *padapter)
 	cam_ctl->bitmap = 0;
 	memset(dvobj->cam_cache, 0, sizeof(struct cam_entry_cache)*TOTAL_CAM_ENTRY);
 	spin_unlock_bh(&cam_ctl->lock);
-}
-
-static u32 _ReadCAM(struct adapter *padapter, u32 addr)
-{
-	u32 count = 0, cmd;
-
-	cmd = CAM_POLLINIG | addr;
-	rtw_write32(padapter, RWCAM, cmd);
-
-	do {
-		if (0 == (rtw_read32(padapter, REG_CAMCMD) & CAM_POLLINIG))
-			break;
-	} while (count++ < 100);
-
-	return rtw_read32(padapter, REG_CAMREAD);
-}
-
-void read_cam(struct adapter *padapter, u8 entry, u8 *get_key)
-{
-	u32 j, addr, cmd;
-
-	addr = entry << 3;
-
-	for (j = 0; j < 6; j++) {
-		cmd = _ReadCAM(padapter, addr+j);
-		if (j > 1) /* get key from cam */
-			memcpy(get_key+(j-2)*4, &cmd, 4);
-	}
 }
 
 void _write_cam(struct adapter *padapter, u8 entry, u16 ctrl, u8 *mac, u8 *key)
@@ -1821,30 +1783,4 @@ void rtw_release_macid(struct adapter *padapter, struct sta_info *psta)
 		}
 	}
 	spin_unlock_bh(&pdvobj->lock);
-}
-
-/* For 8188E RA */
-u8 rtw_search_max_mac_id(struct adapter *padapter)
-{
-	u8 max_mac_id = 0;
-	struct dvobj_priv *pdvobj = adapter_to_dvobj(padapter);
-	int i;
-
-	spin_lock_bh(&pdvobj->lock);
-	for (i = (NUM_STA-1); i >= 0 ; i--) {
-		if (pdvobj->macid[i] == true)
-			break;
-	}
-	max_mac_id = i;
-	spin_unlock_bh(&pdvobj->lock);
-
-	return max_mac_id;
-}
-
-struct adapter *dvobj_get_port0_adapter(struct dvobj_priv *dvobj)
-{
-	if (get_iface_type(dvobj->padapters[i]) != IFACE_PORT0)
-		return NULL;
-
-	return dvobj->padapters;
 }
