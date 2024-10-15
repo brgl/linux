@@ -12,10 +12,11 @@
 //! do so first instead of bypassing this crate.
 
 #![no_std]
+#![feature(arbitrary_self_types)]
 #![feature(coerce_unsized)]
 #![feature(dispatch_from_dyn)]
-#![feature(new_uninit)]
-#![feature(receiver_trait)]
+#![feature(inline_const)]
+#![feature(lint_reasons)]
 #![feature(unsize)]
 
 // Ensure conditional compilation based on the kernel configuration works;
@@ -59,6 +60,7 @@ pub mod str;
 pub mod sync;
 pub mod task;
 pub mod time;
+pub mod transmute;
 pub mod types;
 pub mod uaccess;
 pub mod workqueue;
