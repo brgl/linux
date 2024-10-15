@@ -340,6 +340,15 @@ static int btrfs_parse_param(struct fs_context *fc, struct fs_parameter *param)
 		fallthrough;
 	case Opt_compress:
 	case Opt_compress_type:
+		/*
+		 * Provide the same semantics as older kernels that don't use fs
+		 * context, specifying the "compress" option clears
+		 * "force-compress" without the need to pass
+		 * "compress-force=[no|none]" before specifying "compress".
+		 */
+		if (opt != Opt_compress_force && opt != Opt_compress_force_type)
+			btrfs_clear_opt(ctx->mount_opt, FORCE_COMPRESS);
+
 		if (opt == Opt_compress || opt == Opt_compress_force) {
 			ctx->compress_type = BTRFS_COMPRESS_ZLIB;
 			ctx->compress_level = BTRFS_ZLIB_DEFAULT_LEVEL;
@@ -937,8 +946,7 @@ static int get_default_subvol_objectid(struct btrfs_fs_info *fs_info, u64 *objec
 }
 
 static int btrfs_fill_super(struct super_block *sb,
-			    struct btrfs_fs_devices *fs_devices,
-			    void *data)
+			    struct btrfs_fs_devices *fs_devices)
 {
 	struct inode *inode;
 	struct btrfs_fs_info *fs_info = btrfs_sb(sb);
@@ -962,7 +970,7 @@ static int btrfs_fill_super(struct super_block *sb,
 		return err;
 	}
 
-	err = open_ctree(sb, fs_devices, (char *)data);
+	err = open_ctree(sb, fs_devices);
 	if (err) {
 		btrfs_err(fs_info, "open_ctree failed");
 		return err;
@@ -1885,7 +1893,7 @@ static int btrfs_get_tree_super(struct fs_context *fc)
 		snprintf(sb->s_id, sizeof(sb->s_id), "%pg", bdev);
 		shrinker_debugfs_rename(sb->s_shrink, "sb-btrfs:%s", sb->s_id);
 		btrfs_sb(sb)->bdev_holder = &btrfs_fs_type;
-		ret = btrfs_fill_super(sb, fs_devices, NULL);
+		ret = btrfs_fill_super(sb, fs_devices);
 	}
 
 	if (ret) {
@@ -2403,10 +2411,10 @@ static long btrfs_nr_cached_objects(struct super_block *sb, struct shrink_contro
 	trace_btrfs_extent_map_shrinker_count(fs_info, nr);
 
 	/*
-	 * Only report the real number for DEBUG builds, as there are reports of
-	 * serious performance degradation caused by too frequent shrinks.
+	 * Only report the real number for EXPERIMENTAL builds, as there are
+	 * reports of serious performance degradation caused by too frequent shrinks.
 	 */
-	if (IS_ENABLED(CONFIG_BTRFS_DEBUG))
+	if (IS_ENABLED(CONFIG_BTRFS_EXPERIMENTAL))
 		return nr;
 	return 0;
 }
