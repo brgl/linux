@@ -38,6 +38,7 @@ static void populate_spltaps_from_taps(struct spl_taps *spl_scaling_quality,
 	spl_scaling_quality->h_taps = scaling_quality->h_taps;
 	spl_scaling_quality->v_taps_c = scaling_quality->v_taps_c;
 	spl_scaling_quality->v_taps = scaling_quality->v_taps;
+	spl_scaling_quality->integer_scaling = scaling_quality->integer_scaling;
 }
 static void populate_taps_from_spltaps(struct scaling_taps *scaling_quality,
 		const struct spl_taps *spl_scaling_quality)
@@ -187,7 +188,7 @@ void translate_SPL_in_params_from_pipe_ctx(struct pipe_ctx *pipe_ctx, struct spl
 	spl_in->h_active = pipe_ctx->plane_res.scl_data.h_active;
 	spl_in->v_active = pipe_ctx->plane_res.scl_data.v_active;
 
-	spl_in->debug.sharpen_policy = (enum sharpen_policy)pipe_ctx->stream->ctx->dc->debug.sharpen_policy;
+	spl_in->sharpen_policy = (enum sharpen_policy)plane_state->adaptive_sharpness_policy;
 	spl_in->debug.scale_to_sharpness_policy =
 		(enum scale_to_sharpness_policy)pipe_ctx->stream->ctx->dc->debug.scale_to_sharpness_policy;
 

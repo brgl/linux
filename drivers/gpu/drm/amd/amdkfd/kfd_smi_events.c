@@ -42,9 +42,10 @@ struct kfd_smi_client {
 	struct rcu_head rcu;
 	pid_t pid;
 	bool suser;
+	u32 drop_count;
 };
 
-#define MAX_KFIFO_SIZE	1024
+#define KFD_MAX_KFIFO_SIZE	8192
 
 static __poll_t kfd_smi_ev_poll(struct file *, struct poll_table_struct *);
 static ssize_t kfd_smi_ev_read(struct file *, char __user *, size_t, loff_t *);
@@ -86,7 +87,7 @@ static ssize_t kfd_smi_ev_read(struct file *filep, char __user *user,
 	struct kfd_smi_client *client = filep->private_data;
 	unsigned char *buf;
 
-	size = min_t(size_t, size, MAX_KFIFO_SIZE);
+	size = min_t(size_t, size, KFD_MAX_KFIFO_SIZE);
 	buf = kmalloc(size, GFP_KERNEL);
 	if (!buf)
 		return -ENOMEM;
@@ -103,11 +104,27 @@ static ssize_t kfd_smi_ev_read(struct file *filep, char __user *user,
 	}
 	to_copy = min(size, to_copy);
 	ret = kfifo_out(&client->fifo, buf, to_copy);
-	spin_unlock(&client->lock);
 	if (ret <= 0) {
+		spin_unlock(&client->lock);
 		ret = -EAGAIN;
 		goto ret_err;
 	}
+
+	if (client->drop_count) {
+		char msg[KFD_SMI_EVENT_MSG_SIZE];
+		int len;
+
+		len = snprintf(msg, sizeof(msg), "%x ", KFD_SMI_EVENT_DROPPED_EVENT);
+		len += snprintf(msg + len, sizeof(msg) - len,
+				KFD_EVENT_FMT_DROPPED_EVENT(ktime_get_boottime_ns(),
+				client->pid, client->drop_count));
+		if (kfifo_avail(&client->fifo) >= len) {
+			kfifo_in(&client->fifo, msg, len);
+			client->drop_count = 0;
+		}
+	}
+
+	spin_unlock(&client->lock);
 
 	ret = copy_to_user(user, buf, to_copy);
 	if (ret) {
@@ -182,13 +199,15 @@ static void add_event_to_kfifo(pid_t pid, struct kfd_node *dev,
 	list_for_each_entry_rcu(client, &dev->smi_clients, list) {
 		if (!kfd_smi_ev_enabled(pid, client, smi_event))
 			continue;
+
 		spin_lock(&client->lock);
-		if (kfifo_avail(&client->fifo) >= len) {
+		if (!client->drop_count && kfifo_avail(&client->fifo) >= len) {
 			kfifo_in(&client->fifo, event_msg, len);
 			wake_up_all(&client->wait_queue);
 		} else {
-			pr_debug("smi_event(EventID: %u): no space left\n",
-					smi_event);
+			client->drop_count++;
+			pr_debug("smi_event(EventID: %u): no space left drop_count %d\n",
+				 smi_event, client->drop_count);
 		}
 		spin_unlock(&client->lock);
 	}
@@ -292,12 +311,13 @@ void kfd_smi_event_migration_start(struct kfd_node *node, pid_t pid,
 
 void kfd_smi_event_migration_end(struct kfd_node *node, pid_t pid,
 				 unsigned long start, unsigned long end,
-				 uint32_t from, uint32_t to, uint32_t trigger)
+				 uint32_t from, uint32_t to, uint32_t trigger,
+				 int error_code)
 {
 	kfd_smi_event_add(pid, node, KFD_SMI_EVENT_MIGRATE_END,
 			  KFD_EVENT_FMT_MIGRATE_END(
 			  ktime_get_boottime_ns(), pid, start, end - start,
-			  from, to, trigger));
+			  from, to, trigger, error_code));
 }
 
 void kfd_smi_event_queue_eviction(struct kfd_node *node, pid_t pid,
@@ -354,7 +374,7 @@ int kfd_smi_event_open(struct kfd_node *dev, uint32_t *fd)
 		return -ENOMEM;
 	INIT_LIST_HEAD(&client->list);
 
-	ret = kfifo_alloc(&client->fifo, MAX_KFIFO_SIZE, GFP_KERNEL);
+	ret = kfifo_alloc(&client->fifo, KFD_MAX_KFIFO_SIZE, GFP_KERNEL);
 	if (ret) {
 		kfree(client);
 		return ret;
