@@ -24,6 +24,11 @@
 #define _AES_		0x4
 #define _WEP104_	0x5
 
+#define _AUTH_OPEN_SYSTEM_	0x0
+#define _AUTH_SHARED_SYSTEM_	0x1
+#define _AUTH_8021x_		0x2
+#define _AUTH_AUTHSWITCH_	0x3
+
 #define _WPA_IE_ID_	0xdd
 #define _WPA2_IE_ID_	0x30
 
@@ -77,10 +82,10 @@ struct RT_PMKID_LIST {
 };
 
 struct security_priv {
-	u32 AuthAlgrthm;		/* 802.11 auth, could be open, shared,
+	u32 auth_algorithm;		/* 802.11 auth, could be open, shared,
 					 * 8021x and authswitch
 					 */
-	u32 PrivacyAlgrthm;		/* This specify the privacy for shared
+	u32 privacy_algorithm;		/* This specify the privacy for shared
 					 * auth. algorithm.
 					 */
 	u32 PrivacyKeyIndex;		/* this is only valid for legendary
@@ -139,11 +144,11 @@ struct security_priv {
 
 #define GET_ENCRY_ALGO(psecuritypriv, psta, encry_algo, bmcst) \
 do { \
-	switch (psecuritypriv->AuthAlgrthm) { \
+	switch (psecuritypriv->auth_algorithm) { \
 	case 0: \
 	case 1: \
 	case 3: \
-		encry_algo = (u8)psecuritypriv->PrivacyAlgrthm; \
+		encry_algo = (u8)psecuritypriv->privacy_algorithm; \
 		break; \
 	case 2: \
 		if (bmcst) \

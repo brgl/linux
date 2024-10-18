@@ -583,7 +583,7 @@ static bool HalDetectPwrDownMode(struct adapter *Adapter)
 	return pHalData->pwrdown;
 }	/*  HalDetectPwrDownMode */
 
-static u32 rtl8723bs_hal_init(struct adapter *padapter)
+u32 rtl8723bs_hal_init(struct adapter *padapter)
 {
 	s32 ret;
 	struct hal_com_data *pHalData;
@@ -884,7 +884,7 @@ static void CardDisableRTL8723BSdio(struct adapter *padapter)
 	HalPwrSeqCmdParsing(padapter, PWR_CUT_ALL_MSK, PWR_FAB_ALL_MSK, PWR_INTF_SDIO_MSK, rtl8723B_card_disable_flow);
 }
 
-static u32 rtl8723bs_hal_deinit(struct adapter *padapter)
+u32 rtl8723bs_hal_deinit(struct adapter *padapter)
 {
 	struct dvobj_priv *psdpriv = padapter->dvobj;
 	struct debug_priv *pdbgpriv = &psdpriv->drv_dbg;
@@ -937,17 +937,7 @@ static u32 rtl8723bs_hal_deinit(struct adapter *padapter)
 	return _SUCCESS;
 }
 
-static u32 rtl8723bs_inirp_init(struct adapter *padapter)
-{
-	return _SUCCESS;
-}
-
-static u32 rtl8723bs_inirp_deinit(struct adapter *padapter)
-{
-	return _SUCCESS;
-}
-
-static void rtl8723bs_init_default_value(struct adapter *padapter)
+void rtl8723bs_init_default_value(struct adapter *padapter)
 {
 	struct hal_com_data *pHalData;
 
@@ -960,7 +950,7 @@ static void rtl8723bs_init_default_value(struct adapter *padapter)
 	pHalData->SdioRxFIFOCnt = 0;
 }
 
-static void rtl8723bs_interface_configure(struct adapter *padapter)
+void rtl8723bs_interface_configure(struct adapter *padapter)
 {
 	struct hal_com_data *pHalData = GET_HAL_DATA(padapter);
 	struct dvobj_priv *pdvobjpriv = adapter_to_dvobj(padapter);
@@ -1142,7 +1132,7 @@ static s32 _ReadAdapterInfo8723BS(struct adapter *padapter)
 	return _SUCCESS;
 }
 
-static void ReadAdapterInfo8723BS(struct adapter *padapter)
+void ReadAdapterInfo8723BS(struct adapter *padapter)
 {
 	/*  Read EEPROM size before call any EEPROM function */
 	padapter->EepromAddressSize = GetEEPROMSize8723B(padapter);
@@ -1269,24 +1259,6 @@ void rtl8723bs_set_hal_ops(struct adapter *padapter)
 
 	rtl8723b_set_hal_ops(pHalFunc);
 
-	pHalFunc->hal_init = &rtl8723bs_hal_init;
-	pHalFunc->hal_deinit = &rtl8723bs_hal_deinit;
-
-	pHalFunc->inirp_init = &rtl8723bs_inirp_init;
-	pHalFunc->inirp_deinit = &rtl8723bs_inirp_deinit;
-
-	pHalFunc->init_xmit_priv = &rtl8723bs_init_xmit_priv;
-	pHalFunc->free_xmit_priv = &rtl8723bs_free_xmit_priv;
-
-	pHalFunc->init_recv_priv = &rtl8723bs_init_recv_priv;
-	pHalFunc->free_recv_priv = &rtl8723bs_free_recv_priv;
-
-	pHalFunc->init_default_value = &rtl8723bs_init_default_value;
-	pHalFunc->intf_chip_configure = &rtl8723bs_interface_configure;
-	pHalFunc->read_adapter_info = &ReadAdapterInfo8723BS;
-
-	pHalFunc->enable_interrupt = &EnableInterrupt8723BSdio;
-	pHalFunc->disable_interrupt = &DisableInterrupt8723BSdio;
 	pHalFunc->check_ips_status = &CheckIPSStatus;
 	pHalFunc->SetHwRegHandler = &SetHwReg8723BS;
 	pHalFunc->GetHwRegHandler = &GetHwReg8723BS;

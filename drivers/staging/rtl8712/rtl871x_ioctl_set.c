@@ -19,6 +19,7 @@
 #include "osdep_service.h"
 #include "drv_types.h"
 #include "rtl871x_ioctl_set.h"
+#include "rtl871x_security.h"
 #include "usb_osintf.h"
 #include "usb_ops.h"
 
@@ -40,8 +41,8 @@ static u8 do_join(struct _adapter *padapter)
 {
 	struct list_head *plist, *phead;
 	u8 *pibss = NULL;
-	struct	mlme_priv	*pmlmepriv = &(padapter->mlmepriv);
-	struct  __queue	*queue	= &(pmlmepriv->scanned_queue);
+	struct	mlme_priv	*pmlmepriv = &padapter->mlmepriv;
+	struct  __queue	*queue	= &pmlmepriv->scanned_queue;
 	int ret;
 
 	phead = &queue->queue;
@@ -228,7 +229,7 @@ void r8712_set_802_11_infrastructure_mode(struct _adapter *padapter,
 	struct mlme_priv	*pmlmepriv = &padapter->mlmepriv;
 	struct wlan_network	*cur_network = &pmlmepriv->cur_network;
 	enum NDIS_802_11_NETWORK_INFRASTRUCTURE *pold_state =
-				&(cur_network->network.InfrastructureMode);
+				&cur_network->network.InfrastructureMode;
 
 	if (*pold_state != networktype) {
 		spin_lock_irqsave(&pmlmepriv->lock, irqL);
@@ -318,7 +319,7 @@ u8 r8712_set_802_11_authentication_mode(struct _adapter *padapter,
 
 	psecuritypriv->ndisauthtype = authmode;
 	if (psecuritypriv->ndisauthtype > 3)
-		psecuritypriv->AuthAlgrthm = 2; /* 802.1x */
+		psecuritypriv->auth_algorithm = _AUTH_8021x_;
 	if (r8712_set_auth(padapter, psecuritypriv))
 		ret = false;
 	else
@@ -337,13 +338,13 @@ int r8712_set_802_11_add_wep(struct _adapter *padapter,
 		return -EINVAL;
 	switch (wep->KeyLength) {
 	case 5:
-		psecuritypriv->PrivacyAlgrthm = _WEP40_;
+		psecuritypriv->privacy_algorithm = _WEP40_;
 		break;
 	case 13:
-		psecuritypriv->PrivacyAlgrthm = _WEP104_;
+		psecuritypriv->privacy_algorithm = _WEP104_;
 		break;
 	default:
-		psecuritypriv->PrivacyAlgrthm = _NO_PRIVACY_;
+		psecuritypriv->privacy_algorithm = _NO_PRIVACY_;
 		break;
 	}
 	memcpy(psecuritypriv->DefKey[keyid].skey, &wep->KeyMaterial,

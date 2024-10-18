@@ -9748,6 +9748,11 @@ L:	platform-driver-x86@vger.kernel.org
 S:	Maintained
 F:	drivers/platform/x86/gpd-pocket-fan.c
 
+GPIB DRIVERS
+M:	Dave Penkler <dpenkler@gmail.com>
+S:	Maintained
+F:	drivers/staging/gpib/
+
 GPIO ACPI SUPPORT
 M:	Mika Westerberg <mika.westerberg@linux.intel.com>
 M:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
@@ -22064,13 +22069,6 @@ L:	linux-tegra@vger.kernel.org
 S:	Maintained
 F:	drivers/staging/nvec/
 
-STAGING - OLPC SECONDARY DISPLAY CONTROLLER (DCON)
-M:	Jens Frederich <jfrederich@gmail.com>
-M:	Jon Nettleton <jon.nettleton@gmail.com>
-S:	Maintained
-W:	http://wiki.laptop.org/go/DCON
-F:	drivers/staging/olpc_dcon/
-
 STAGING - REALTEK RTL8712U DRIVERS
 M:	Florian Schilhabel <florian.c.schilhabel@googlemail.com>.
 S:	Odd Fixes
@@ -22090,11 +22088,6 @@ M:	Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
 L:	linux-fbdev@vger.kernel.org
 S:	Maintained
 F:	drivers/staging/sm750fb/
-
-STAGING - VIA VT665X DRIVERS
-M:	Philipp Hortmann <philipp.g.hortmann@gmail.com>
-S:	Odd Fixes
-F:	drivers/staging/vt665?/
 
 STAGING SUBSYSTEM
 M:	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
