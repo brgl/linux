@@ -33,6 +33,7 @@
 #include <linux/mmc/slot-gpio.h>
 
 #include "cqhci.h"
+#include "mmc_hsq.h"
 
 #define MAX_BD_NUM          1024
 #define MSDC_NR_CLOCKS      3
@@ -473,6 +474,7 @@ struct msdc_host {
 	bool hs400_tuning;	/* hs400 mode online tuning */
 	bool internal_cd;	/* Use internal card-detect logic */
 	bool cqhci;		/* support eMMC hw cmdq */
+	bool hsq_en;		/* Host Software Queue is enabled */
 	struct msdc_save_para save_para; /* used when gate HCLK */
 	struct msdc_tune_para def_tune_para; /* default tune setting */
 	struct msdc_tune_para saved_tune_para; /* tune result of CMD21/CMD19 */
@@ -1163,13 +1165,36 @@ static void msdc_track_cmd_data(struct msdc_host *host, struct mmc_command *cmd)
 
 static void msdc_request_done(struct msdc_host *host, struct mmc_request *mrq)
 {
+	struct mmc_host *mmc = mmc_from_priv(host);
 	unsigned long flags;
+	bool hsq_req_done;
 
 	/*
 	 * No need check the return value of cancel_delayed_work, as only ONE
 	 * path will go here!
 	 */
 	cancel_delayed_work(&host->req_timeout);
+
+	/*
+	 * If the request was handled from Host Software Queue, there's almost
+	 * nothing to do here, and we also don't need to reset mrq as any race
+	 * condition would not have any room to happen, since HSQ stores the
+	 * "scheduled" mrqs in an internal array of mrq slots anyway.
+	 * However, if the controller experienced an error, we still want to
+	 * reset it as soon as possible.
+	 *
+	 * Note that non-HSQ requests will still be happening at times, even
+	 * though it is enabled, and that's what is going to reset host->mrq.
+	 * Also, msdc_unprepare_data() is going to be called by HSQ when needed
+	 * as HSQ request finalization will eventually call the .post_req()
+	 * callback of this driver which, in turn, unprepares the data.
+	 */
+	hsq_req_done = host->hsq_en ? mmc_hsq_finalize_request(mmc, mrq) : false;
+	if (hsq_req_done) {
+		if (host->error)
+			msdc_reset_hw(host);
+		return;
+	}
 
 	spin_lock_irqsave(&host->lock, flags);
 	host->mrq = NULL;
@@ -1180,7 +1205,7 @@ static void msdc_request_done(struct msdc_host *host, struct mmc_request *mrq)
 		msdc_unprepare_data(host, mrq->data);
 	if (host->error)
 		msdc_reset_hw(host);
-	mmc_request_done(mmc_from_priv(host), mrq);
+	mmc_request_done(mmc, mrq);
 	if (host->dev_comp->recheck_sdio_irq)
 		msdc_recheck_sdio_irq(host);
 }
@@ -1340,7 +1365,7 @@ static void msdc_ops_request(struct mmc_host *mmc, struct mmc_request *mrq)
 	struct msdc_host *host = mmc_priv(mmc);
 
 	host->error = 0;
-	WARN_ON(host->mrq);
+	WARN_ON(!host->hsq_en && host->mrq);
 	host->mrq = mrq;
 
 	if (mrq->data)
@@ -2727,7 +2752,6 @@ static int msdc_drv_probe(struct platform_device *pdev)
 {
 	struct mmc_host *mmc;
 	struct msdc_host *host;
-	struct resource *res;
 	int ret;
 
 	if (!pdev->dev.of_node) {
@@ -2736,77 +2760,63 @@ static int msdc_drv_probe(struct platform_device *pdev)
 	}
 
 	/* Allocate MMC host for this device */
-	mmc = mmc_alloc_host(sizeof(struct msdc_host), &pdev->dev);
+	mmc = devm_mmc_alloc_host(&pdev->dev, sizeof(struct msdc_host));
 	if (!mmc)
 		return -ENOMEM;
 
 	host = mmc_priv(mmc);
 	ret = mmc_of_parse(mmc);
 	if (ret)
-		goto host_free;
+		return ret;
 
 	host->base = devm_platform_ioremap_resource(pdev, 0);
-	if (IS_ERR(host->base)) {
-		ret = PTR_ERR(host->base);
-		goto host_free;
-	}
+	if (IS_ERR(host->base))
+		return PTR_ERR(host->base);
 
-	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-	if (res) {
-		host->top_base = devm_ioremap_resource(&pdev->dev, res);
-		if (IS_ERR(host->top_base))
-			host->top_base = NULL;
-	}
+	host->top_base = devm_platform_ioremap_resource(pdev, 1);
+	if (IS_ERR(host->top_base))
+		host->top_base = NULL;
 
 	ret = mmc_regulator_get_supply(mmc);
 	if (ret)
-		goto host_free;
+		return ret;
 
 	ret = msdc_of_clock_parse(pdev, host);
 	if (ret)
-		goto host_free;
+		return ret;
 
 	host->reset = devm_reset_control_get_optional_exclusive(&pdev->dev,
 								"hrst");
-	if (IS_ERR(host->reset)) {
-		ret = PTR_ERR(host->reset);
-		goto host_free;
-	}
+	if (IS_ERR(host->reset))
+		return PTR_ERR(host->reset);
 
 	/* only eMMC has crypto property */
 	if (!(mmc->caps2 & MMC_CAP2_NO_MMC)) {
 		host->crypto_clk = devm_clk_get_optional(&pdev->dev, "crypto");
 		if (IS_ERR(host->crypto_clk))
-			host->crypto_clk = NULL;
-		else
-			mmc->caps2 |= MMC_CAP2_CRYPTO;
+			return PTR_ERR(host->crypto_clk);
+		mmc->caps2 |= MMC_CAP2_CRYPTO;
 	}
 
 	host->irq = platform_get_irq(pdev, 0);
-	if (host->irq < 0) {
-		ret = host->irq;
-		goto host_free;
-	}
+	if (host->irq < 0)
+		return host->irq;
 
 	host->pinctrl = devm_pinctrl_get(&pdev->dev);
-	if (IS_ERR(host->pinctrl)) {
-		ret = PTR_ERR(host->pinctrl);
-		dev_err(&pdev->dev, "Cannot find pinctrl!\n");
-		goto host_free;
-	}
+	if (IS_ERR(host->pinctrl))
+		return dev_err_probe(&pdev->dev, PTR_ERR(host->pinctrl),
+				     "Cannot find pinctrl");
 
 	host->pins_default = pinctrl_lookup_state(host->pinctrl, "default");
 	if (IS_ERR(host->pins_default)) {
-		ret = PTR_ERR(host->pins_default);
 		dev_err(&pdev->dev, "Cannot find pinctrl default!\n");
-		goto host_free;
+		return PTR_ERR(host->pins_default);
 	}
 
 	host->pins_uhs = pinctrl_lookup_state(host->pinctrl, "state_uhs");
 	if (IS_ERR(host->pins_uhs)) {
-		ret = PTR_ERR(host->pins_uhs);
 		dev_err(&pdev->dev, "Cannot find pinctrl uhs!\n");
-		goto host_free;
+		return PTR_ERR(host->pins_uhs);
 	}
 
 	/* Support for SDIO eint irq ? */
@@ -2895,20 +2905,33 @@ static int msdc_drv_probe(struct platform_device *pdev)
 					     GFP_KERNEL);
 		if (!host->cq_host) {
 			ret = -ENOMEM;
-			goto host_free;
+			goto release_mem;
 		}
 		host->cq_host->caps |= CQHCI_TASK_DESC_SZ_128;
 		host->cq_host->mmio = host->base + 0x800;
 		host->cq_host->ops = &msdc_cmdq_ops;
 		ret = cqhci_init(host->cq_host, mmc, true);
 		if (ret)
-			goto host_free;
+			goto release_mem;
 		mmc->max_segs = 128;
 		/* cqhci 16bit length */
 		/* 0 size, means 65536 so we don't have to -1 here */
 		mmc->max_seg_size = 64 * 1024;
 		/* Reduce CIT to 0x40 that corresponds to 2.35us */
 		msdc_cqe_cit_cal(host, 2350);
+	} else if (mmc->caps2 & MMC_CAP2_NO_SDIO) {
+		/* Use HSQ on eMMC/SD (but not on SDIO) if HW CQE not supported */
+		struct mmc_hsq *hsq = devm_kzalloc(&pdev->dev, sizeof(*hsq), GFP_KERNEL);
+		if (!hsq) {
+			ret = -ENOMEM;
+			goto release;
+		}
+
+		ret = mmc_hsq_init(hsq, mmc);
+		if (ret)
+			goto release;
+
+		host->hsq_en = true;
 	}
 
 	ret = devm_request_irq(&pdev->dev, host->irq, msdc_irq,
@@ -2939,11 +2962,8 @@ release_mem:
 			host->dma.gpd, host->dma.gpd_addr);
 	if (host->dma.bd)
 		dma_free_coherent(&pdev->dev,
-			MAX_BD_NUM * sizeof(struct mt_bdma_desc),
-			host->dma.bd, host->dma.bd_addr);
-host_free:
-	mmc_free_host(mmc);
-
+				  MAX_BD_NUM * sizeof(struct mt_bdma_desc),
+				  host->dma.bd, host->dma.bd_addr);
 	return ret;
 }
 
@@ -2968,9 +2988,7 @@ static void msdc_drv_remove(struct platform_device *pdev)
 			2 * sizeof(struct mt_gpdma_desc),
 			host->dma.gpd, host->dma.gpd_addr);
 	dma_free_coherent(&pdev->dev, MAX_BD_NUM * sizeof(struct mt_bdma_desc),
-			host->dma.bd, host->dma.bd_addr);
-
-	mmc_free_host(mmc);
+			  host->dma.bd, host->dma.bd_addr);
 }
 
 static void msdc_save_reg(struct msdc_host *host)
@@ -3036,6 +3054,9 @@ static int __maybe_unused msdc_runtime_suspend(struct device *dev)
 	struct mmc_host *mmc = dev_get_drvdata(dev);
 	struct msdc_host *host = mmc_priv(mmc);
 
+	if (host->hsq_en)
+		mmc_hsq_suspend(mmc);
+
 	msdc_save_reg(host);
 
 	if (sdio_irq_claimed(mmc)) {
@@ -3066,6 +3087,10 @@ static int __maybe_unused msdc_runtime_resume(struct device *dev)
 		pinctrl_select_state(host->pinctrl, host->pins_uhs);
 		enable_irq(host->irq);
 	}
+
+	if (host->hsq_en)
+		mmc_hsq_resume(mmc);
+
 	return 0;
 }
 
@@ -3112,7 +3137,7 @@ static const struct dev_pm_ops msdc_dev_pm_ops = {
 
 static struct platform_driver mt_msdc_driver = {
 	.probe = msdc_drv_probe,
-	.remove_new = msdc_drv_remove,
+	.remove = msdc_drv_remove,
 	.driver = {
 		.name = "mtk-msdc",
 		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
