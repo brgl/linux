@@ -628,7 +628,7 @@ static struct bch_inode_info *bch2_lookup_trans(struct btree_trans *trans,
 		goto err;
 
 	/* regular files may have hardlinks: */
-	if (bch2_fs_inconsistent_on(bch2_inode_should_have_bp(&inode_u) &&
+	if (bch2_fs_inconsistent_on(bch2_inode_should_have_single_bp(&inode_u) &&
 				    !bkey_eq(k.k->p, POS(inode_u.bi_dir, inode_u.bi_dir_offset)),
 				    c,
 				    "dirent points to inode that does not point back:\n  %s",
@@ -2040,7 +2040,7 @@ static int bch2_show_options(struct seq_file *seq, struct dentry *root)
 	bch2_opts_to_text(&buf, c->opts, c, c->disk_sb.sb,
 			  OPT_MOUNT, OPT_HIDDEN, OPT_SHOW_MOUNT_STYLE);
 	printbuf_nul_terminate(&buf);
-	seq_puts(seq, buf.buf);
+	seq_printf(seq, ",%s", buf.buf);
 
 	int ret = buf.allocation_failure ? -ENOMEM : 0;
 	printbuf_exit(&buf);
