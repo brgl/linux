@@ -1319,6 +1319,8 @@ static const struct vb2_ops venc_vb2_ops = {
 	.buf_prepare = venus_helper_vb2_buf_prepare,
 	.start_streaming = venc_start_streaming,
 	.stop_streaming = venus_helper_vb2_stop_streaming,
+	.wait_prepare = vb2_ops_wait_prepare,
+	.wait_finish = vb2_ops_wait_finish,
 	.buf_queue = venc_vb2_buf_queue,
 };
 
@@ -1643,7 +1645,7 @@ MODULE_DEVICE_TABLE(of, venc_dt_match);
 
 static struct platform_driver qcom_venus_enc_driver = {
 	.probe = venc_probe,
-	.remove_new = venc_remove,
+	.remove = venc_remove,
 	.driver = {
 		.name = "qcom-venus-encoder",
 		.of_match_table = venc_dt_match,
