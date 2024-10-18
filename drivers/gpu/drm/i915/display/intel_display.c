@@ -2609,12 +2609,28 @@ static int intel_crtc_compute_pipe_mode(struct intel_crtc_state *crtc_state)
 	return 0;
 }
 
+static bool intel_crtc_needs_wa_14015401596(struct intel_crtc_state *crtc_state)
+{
+	struct intel_display *display = to_intel_display(crtc_state);
+	const struct drm_display_mode *adjusted_mode = &crtc_state->hw.adjusted_mode;
+
+	return intel_vrr_possible(crtc_state) && crtc_state->has_psr &&
+		adjusted_mode->crtc_vblank_start == adjusted_mode->crtc_vdisplay &&
+		IS_DISPLAY_VER(display, 13, 14);
+}
+
 static int intel_crtc_compute_config(struct intel_atomic_state *state,
 				     struct intel_crtc *crtc)
 {
 	struct intel_crtc_state *crtc_state =
 		intel_atomic_get_new_crtc_state(state, crtc);
+	struct drm_display_mode *adjusted_mode =
+		&crtc_state->hw.adjusted_mode;
 	int ret;
+
+	/* Wa_14015401596 */
+	if (intel_crtc_needs_wa_14015401596(crtc_state))
+		adjusted_mode->crtc_vblank_start += 1;
 
 	ret = intel_dpll_crtc_compute_clock(state, crtc);
 	if (ret)
@@ -5049,6 +5065,8 @@ intel_modeset_pipe_config_late(struct intel_atomic_state *state,
 	struct drm_connector_state *conn_state;
 	struct drm_connector *connector;
 	int i;
+
+	intel_vrr_compute_config_late(crtc_state);
 
 	for_each_new_connector_in_state(&state->base, connector,
 					conn_state, i) {
