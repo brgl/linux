@@ -11640,7 +11640,7 @@ F:	drivers/usb/misc/usb-ljca.c
 F:	include/linux/usb/ljca.h
 
 INTEL MANAGEMENT ENGINE (mei)
-M:	Tomas Winkler <tomas.winkler@intel.com>
+M:	Alexander Usyskin <alexander.usyskin@intel.com>
 L:	linux-kernel@vger.kernel.org
 S:	Supported
 F:	Documentation/driver-api/mei/*
