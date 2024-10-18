@@ -3724,12 +3724,10 @@ long memfd_pin_folios(struct file *memfd, loff_t start, loff_t end,
 		ret = check_and_migrate_movable_folios(nr_folios, folios);
 	} while (ret == -EAGAIN);
 
-	memalloc_pin_restore(flags);
-	return ret ? ret : nr_folios;
 err:
 	memalloc_pin_restore(flags);
-	unpin_folios(folios, nr_folios);
-
-	return ret;
+	if (ret)
+		unpin_folios(folios, nr_folios);
+	return ret ? ret : nr_folios;
 }
 EXPORT_SYMBOL_GPL(memfd_pin_folios);
