@@ -136,6 +136,8 @@ struct inode *gfs2_inode_lookup(struct super_block *sb, unsigned int type,
 				       &ip->i_gl);
 		if (unlikely(error))
 			goto fail;
+		/* Ensure that the glock is unlocked. */
+		flush_delayed_work(&ip->i_gl->gl_work);
 
 		error = gfs2_glock_get(sdp, no_addr, &gfs2_iopen_glops, CREATE,
 				       &io_gl);
@@ -745,6 +747,8 @@ static int gfs2_create_inode(struct inode *dir, struct dentry *dentry,
 	error = gfs2_glock_get(sdp, ip->i_no_addr, &gfs2_inode_glops, CREATE, &ip->i_gl);
 	if (error)
 		goto fail_free_inode;
+	/* Ensure that the glock is unlocked. */
+	flush_delayed_work(&ip->i_gl->gl_work);
 
 	error = gfs2_glock_get(sdp, ip->i_no_addr, &gfs2_iopen_glops, CREATE, &io_gl);
 	if (error)
