@@ -73,7 +73,6 @@
 	bus-width = <8>;
 	cap-mmc-highspeed;
 	mmc-hs200-1_8v;
-	supports-emmc;
 	mmc-pwrseq = <&emmc_pwrseq>;
 	non-removable;
 	vmmc-supply = <&vcc_3v3>;
