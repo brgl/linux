@@ -1122,28 +1122,19 @@ QString ConfigInfoView::print_filter(const QString &str)
 {
 	QRegularExpression re("[<>&\"\\n]");
 	QString res = str;
+
+	QHash<QChar, QString> patterns;
+	patterns['<'] = "&lt;";
+	patterns['>'] = "&gt;";
+	patterns['&'] = "&amp;";
+	patterns['"'] = "&quot;";
+	patterns['\n'] = "<br>";
+
 	for (int i = 0; (i = res.indexOf(re, i)) >= 0;) {
-		switch (res[i].toLatin1()) {
-		case '<':
-			res.replace(i, 1, "&lt;");
-			i += 4;
-			break;
-		case '>':
-			res.replace(i, 1, "&gt;");
-			i += 4;
-			break;
-		case '&':
-			res.replace(i, 1, "&amp;");
-			i += 5;
-			break;
-		case '"':
-			res.replace(i, 1, "&quot;");
-			i += 6;
-			break;
-		case '\n':
-			res.replace(i, 1, "<br>");
-			i += 4;
-			break;
+		const QString n = patterns.value(res[i], QString());
+		if (!n.isEmpty()) {
+			res.replace(i, 1, n);
+			i += n.length();
 		}
 	}
 	return res;
@@ -1240,8 +1231,7 @@ ConfigSearchWindow::ConfigSearchWindow(ConfigMainWindow *parent)
 	layout2->addWidget(searchButton);
 	layout1->addLayout(layout2);
 
-	split = new QSplitter(this);
-	split->setOrientation(Qt::Vertical);
+	split = new QSplitter(Qt::Vertical, this);
 	list = new ConfigList(split, "search");
 	list->mode = listMode;
 	info = new ConfigInfoView(split, "search");
@@ -1341,61 +1331,56 @@ ConfigMainWindow::ConfigMainWindow(void)
 	ConfigItem::menubackIcon = QIcon(QPixmap(xpm_menuback));
 
 	QWidget *widget = new QWidget(this);
-	QVBoxLayout *layout = new QVBoxLayout(widget);
 	setCentralWidget(widget);
 
-	split1 = new QSplitter(widget);
-	split1->setOrientation(Qt::Horizontal);
+	QVBoxLayout *layout = new QVBoxLayout(widget);
+
+	split2 = new QSplitter(Qt::Vertical, widget);
+	layout->addWidget(split2);
+	split2->setChildrenCollapsible(false);
+
+	split1 = new QSplitter(Qt::Horizontal, split2);
 	split1->setChildrenCollapsible(false);
 
-	menuList = new ConfigList(widget, "menu");
+	configList = new ConfigList(split1, "config");
 
-	split2 = new QSplitter(widget);
-	split2->setChildrenCollapsible(false);
-	split2->setOrientation(Qt::Vertical);
+	menuList = new ConfigList(split1, "menu");
 
-	// create config tree
-	configList = new ConfigList(widget, "config");
-
-	helpText = new ConfigInfoView(widget, "help");
-
-	layout->addWidget(split2);
-	split2->addWidget(split1);
-	split1->addWidget(configList);
-	split1->addWidget(menuList);
-	split2->addWidget(helpText);
-
+	helpText = new ConfigInfoView(split2, "help");
 	setTabOrder(configList, helpText);
+
 	configList->setFocus();
 
 	backAction = new QAction(QPixmap(xpm_back), "Back", this);
+	backAction->setShortcut(QKeySequence::Back);
 	connect(backAction, &QAction::triggered,
 		this, &ConfigMainWindow::goBack);
 
 	QAction *quitAction = new QAction("&Quit", this);
-	quitAction->setShortcut(Qt::CTRL | Qt::Key_Q);
+	quitAction->setShortcut(QKeySequence::Quit);
 	connect(quitAction, &QAction::triggered,
 		this, &ConfigMainWindow::close);
 
-	QAction *loadAction = new QAction(QPixmap(xpm_load), "&Load", this);
-	loadAction->setShortcut(Qt::CTRL | Qt::Key_L);
+	QAction *loadAction = new QAction(QPixmap(xpm_load), "&Open", this);
+	loadAction->setShortcut(QKeySequence::Open);
 	connect(loadAction, &QAction::triggered,
 		this, &ConfigMainWindow::loadConfig);
 
 	saveAction = new QAction(QPixmap(xpm_save), "&Save", this);
-	saveAction->setShortcut(Qt::CTRL | Qt::Key_S);
+	saveAction->setShortcut(QKeySequence::Save);
 	connect(saveAction, &QAction::triggered,
 		this, &ConfigMainWindow::saveConfig);
 
 	conf_set_changed_callback(conf_changed);
 
-	configname = xstrdup(conf_get_configname());
+	configname = conf_get_configname();
 
 	QAction *saveAsAction = new QAction("Save &As...", this);
+	saveAsAction->setShortcut(QKeySequence::SaveAs);
 	connect(saveAsAction, &QAction::triggered,
 		this, &ConfigMainWindow::saveConfigAs);
 	QAction *searchAction = new QAction("&Find", this);
-	searchAction->setShortcut(Qt::CTRL | Qt::Key_F);
+	searchAction->setShortcut(QKeySequence::Find);
 	connect(searchAction, &QAction::triggered,
 		this, &ConfigMainWindow::searchConfig);
 	singleViewAction = new QAction(QPixmap(xpm_single_view), "Single View", this);
@@ -1528,28 +1513,22 @@ ConfigMainWindow::ConfigMainWindow(void)
 void ConfigMainWindow::loadConfig(void)
 {
 	QString str;
-	QByteArray ba;
-	const char *name;
 
 	str = QFileDialog::getOpenFileName(this, "", configname);
 	if (str.isNull())
 		return;
 
-	ba = str.toLocal8Bit();
-	name = ba.data();
-
-	if (conf_read(name))
+	if (conf_read(str.toLocal8Bit().constData()))
 		QMessageBox::information(this, "qconf", "Unable to load configuration!");
 
-	free(configname);
-	configname = xstrdup(name);
+	configname = str;
 
 	ConfigList::updateListAllForAll();
 }
 
 bool ConfigMainWindow::saveConfig(void)
 {
-	if (conf_write(configname)) {
+	if (conf_write(configname.toLocal8Bit().constData())) {
 		QMessageBox::information(this, "qconf", "Unable to save configuration!");
 		return false;
 	}
@@ -1561,23 +1540,17 @@ bool ConfigMainWindow::saveConfig(void)
 void ConfigMainWindow::saveConfigAs(void)
 {
 	QString str;
-	QByteArray ba;
-	const char *name;
 
 	str = QFileDialog::getSaveFileName(this, "", configname);
 	if (str.isNull())
 		return;
 
-	ba = str.toLocal8Bit();
-	name = ba.data();
-
-	if (conf_write(name)) {
+	if (conf_write(str.toLocal8Bit().constData())) {
 		QMessageBox::information(this, "qconf", "Unable to save configuration!");
 	}
 	conf_write_autoconf(0);
 
-	free(configname);
-	configname = xstrdup(name);
+	configname = str;
 }
 
 void ConfigMainWindow::searchConfig(void)
