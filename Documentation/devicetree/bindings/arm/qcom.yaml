@@ -76,6 +76,7 @@ description: |
         sm6375
         sm7125
         sm7225
+        sm7325
         sm8150
         sm8250
         sm8350
@@ -821,6 +822,7 @@ properties:
       - items:
           - enum:
               - lenovo,thinkpad-x13s
+              - microsoft,arcata
               - qcom,sc8280xp-crd
               - qcom,sc8280xp-qrd
           - const: qcom,sc8280xp
@@ -991,6 +993,11 @@ properties:
 
       - items:
           - enum:
+              - nothing,spacewar
+          - const: qcom,sm7325
+
+      - items:
+          - enum:
               - microsoft,surface-duo
               - qcom,sm8150-hdk
               - qcom,sm8150-mtp
@@ -1058,6 +1065,7 @@ properties:
       - items:
           - enum:
               - asus,vivobook-s15
+              - dell,xps13-9345
               - lenovo,yoga-slim7x
               - microsoft,romulus13
               - microsoft,romulus15
