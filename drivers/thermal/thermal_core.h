@@ -9,6 +9,7 @@
 #ifndef __THERMAL_CORE_H__
 #define __THERMAL_CORE_H__
 
+#include <linux/cleanup.h>
 #include <linux/device.h>
 #include <linux/thermal.h>
 
@@ -146,6 +147,12 @@ struct thermal_zone_device {
 	struct thermal_trip_desc trips[] __counted_by(num_trips);
 };
 
+DEFINE_GUARD(thermal_zone, struct thermal_zone_device *, mutex_lock(&_T->lock),
+	     mutex_unlock(&_T->lock))
+
+DEFINE_GUARD(thermal_zone_reverse, struct thermal_zone_device *,
+	     mutex_unlock(&_T->lock), mutex_lock(&_T->lock))
+
 /* Initial thermal zone temperature. */
 #define THERMAL_TEMP_INIT	INT_MIN
 
@@ -208,6 +215,7 @@ static inline bool cdev_is_power_actor(struct thermal_cooling_device *cdev)
 }
 
 void thermal_cdev_update(struct thermal_cooling_device *);
+void thermal_cdev_update_nocheck(struct thermal_cooling_device *cdev);
 void __thermal_cdev_update(struct thermal_cooling_device *cdev);
 
 int get_tz_trend(struct thermal_zone_device *tz, const struct thermal_trip *trip);
