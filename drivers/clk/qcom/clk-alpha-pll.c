@@ -40,7 +40,7 @@
 
 #define PLL_USER_CTL(p)		((p)->offset + (p)->regs[PLL_OFF_USER_CTL])
 # define PLL_POST_DIV_SHIFT	8
-# define PLL_POST_DIV_MASK(p)	GENMASK((p)->width - 1, 0)
+# define PLL_POST_DIV_MASK(p)	GENMASK((p)->width ? (p)->width - 1 : 3, 0)
 # define PLL_ALPHA_MSB		BIT(15)
 # define PLL_ALPHA_EN		BIT(24)
 # define PLL_ALPHA_MODE		BIT(25)
@@ -1903,9 +1903,8 @@ static int alpha_pll_lucid_5lpe_enable(struct clk_hw *hw)
 	}
 
 	/* Check if PLL is already enabled, return if enabled */
-	ret = trion_pll_is_enabled(pll, pll->clkr.regmap);
-	if (ret < 0)
-		return ret;
+	if (trion_pll_is_enabled(pll, pll->clkr.regmap))
+		return 0;
 
 	ret = regmap_update_bits(pll->clkr.regmap, PLL_MODE(pll), PLL_RESET_N, PLL_RESET_N);
 	if (ret)
@@ -2318,13 +2317,8 @@ static int alpha_pll_lucid_evo_enable(struct clk_hw *hw)
 	}
 
 	/* Check if PLL is already enabled */
-	ret = trion_pll_is_enabled(pll, regmap);
-	if (ret < 0) {
-		return ret;
-	} else if (ret) {
-		pr_warn("%s PLL is already enabled\n", clk_hw_get_name(&pll->clkr.hw));
+	if (trion_pll_is_enabled(pll, regmap))
 		return 0;
-	}
 
 	ret = regmap_update_bits(regmap, PLL_MODE(pll), PLL_RESET_N, PLL_RESET_N);
 	if (ret)
