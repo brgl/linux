@@ -72,8 +72,6 @@ struct virtio_uml_vq_info {
 	bool suspended;
 };
 
-extern unsigned long long physmem_size, highmem;
-
 #define vu_err(vu_dev, ...)	dev_err(&(vu_dev)->pdev->dev, ##__VA_ARGS__)
 
 /* Vhost-user protocol */
@@ -673,13 +671,6 @@ static int vhost_user_set_mem_table(struct virtio_uml_device *vu_dev)
 
 	if (rc < 0)
 		return rc;
-	if (highmem) {
-		msg.payload.mem_regions.num++;
-		rc = vhost_user_init_mem_region(__pa(end_iomem), highmem,
-				&fds[1], &msg.payload.mem_regions.regions[1]);
-		if (rc < 0)
-			return rc;
-	}
 
 	return vhost_user_send(vu_dev, false, &msg, fds,
 			       msg.payload.mem_regions.num);
