@@ -38,7 +38,7 @@ void mte_default_handler(int signum, siginfo_t *si, void *uc)
 			if (cur_mte_cxt.trig_si_code == si->si_code)
 				cur_mte_cxt.fault_valid = true;
 			else
-				ksft_print_msg("Got unexpected SEGV_MTEAERR at pc=$lx, fault addr=%lx\n",
+				ksft_print_msg("Got unexpected SEGV_MTEAERR at pc=%llx, fault addr=%lx\n",
 					       ((ucontext_t *)uc)->uc_mcontext.pc,
 					       addr);
 			return;
@@ -64,7 +64,7 @@ void mte_default_handler(int signum, siginfo_t *si, void *uc)
 			exit(1);
 		}
 	} else if (signum == SIGBUS) {
-		ksft_print_msg("INFO: SIGBUS signal at pc=%lx, fault addr=%lx, si_code=%lx\n",
+		ksft_print_msg("INFO: SIGBUS signal at pc=%llx, fault addr=%lx, si_code=%x\n",
 				((ucontext_t *)uc)->uc_mcontext.pc, addr, si->si_code);
 		if ((cur_mte_cxt.trig_range >= 0 &&
 		     addr >= MT_CLEAR_TAG(cur_mte_cxt.trig_addr) &&
@@ -100,7 +100,7 @@ void *mte_insert_tags(void *ptr, size_t size)
 	int align_size;
 
 	if (!ptr || (unsigned long)(ptr) & MT_ALIGN_GRANULE) {
-		ksft_print_msg("FAIL: Addr=%lx: invalid\n", ptr);
+		ksft_print_msg("FAIL: Addr=%p: invalid\n", ptr);
 		return NULL;
 	}
 	align_size = MT_ALIGN_UP(size);
@@ -112,7 +112,7 @@ void *mte_insert_tags(void *ptr, size_t size)
 void mte_clear_tags(void *ptr, size_t size)
 {
 	if (!ptr || (unsigned long)(ptr) & MT_ALIGN_GRANULE) {
-		ksft_print_msg("FAIL: Addr=%lx: invalid\n", ptr);
+		ksft_print_msg("FAIL: Addr=%p: invalid\n", ptr);
 		return;
 	}
 	size = MT_ALIGN_UP(size);
@@ -319,10 +319,9 @@ int mte_default_setup(void)
 	unsigned long en = 0;
 	int ret;
 
-	if (!(hwcaps2 & HWCAP2_MTE)) {
-		ksft_print_msg("SKIP: MTE features unavailable\n");
-		return KSFT_SKIP;
-	}
+	if (!(hwcaps2 & HWCAP2_MTE))
+		ksft_exit_skip("MTE features unavailable\n");
+
 	/* Get current mte mode */
 	ret = prctl(PR_GET_TAGGED_ADDR_CTRL, en, 0, 0, 0);
 	if (ret < 0) {
