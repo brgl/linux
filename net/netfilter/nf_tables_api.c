@@ -2082,14 +2082,14 @@ static struct nft_stats __percpu *nft_stats_alloc(const struct nlattr *attr)
 	err = nla_parse_nested_deprecated(tb, NFTA_COUNTER_MAX, attr,
 					  nft_counter_policy, NULL);
 	if (err < 0)
-		return ERR_PTR(err);
+		return ERR_PTR_PCPU(err);
 
 	if (!tb[NFTA_COUNTER_BYTES] || !tb[NFTA_COUNTER_PACKETS])
-		return ERR_PTR(-EINVAL);
+		return ERR_PTR_PCPU(-EINVAL);
 
 	newstats = netdev_alloc_pcpu_stats(struct nft_stats);
 	if (newstats == NULL)
-		return ERR_PTR(-ENOMEM);
+		return ERR_PTR_PCPU(-ENOMEM);
 
 	/* Restore old counters on this cpu, no problem. Per-cpu statistics
 	 * are not exposed to userspace.
@@ -2533,10 +2533,10 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
 
 		if (nla[NFTA_CHAIN_COUNTERS]) {
 			stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
-			if (IS_ERR(stats)) {
+			if (IS_ERR_PCPU(stats)) {
 				nft_chain_release_hook(&hook);
 				kfree(basechain);
-				return PTR_ERR(stats);
+				return PTR_ERR_PCPU(stats);
 			}
 			rcu_assign_pointer(basechain->stats, stats);
 		}
@@ -2650,7 +2650,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
 	struct nft_table *table = ctx->table;
 	struct nft_chain *chain = ctx->chain;
 	struct nft_chain_hook hook = {};
-	struct nft_stats *stats = NULL;
+	struct nft_stats __percpu *stats = NULL;
 	struct nft_hook *h, *next;
 	struct nf_hook_ops *ops;
 	struct nft_trans *trans;
@@ -2746,8 +2746,8 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
 		}
 
 		stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
-		if (IS_ERR(stats)) {
-			err = PTR_ERR(stats);
+		if (IS_ERR_PCPU(stats)) {
+			err = PTR_ERR_PCPU(stats);
 			goto err_hooks;
 		}
 	}
@@ -6409,7 +6409,7 @@ err:
 	nfnetlink_set_err(net, portid, NFNLGRP_NFTABLES, -ENOBUFS);
 }
 
-static struct nft_trans *nft_trans_elem_alloc(struct nft_ctx *ctx,
+static struct nft_trans *nft_trans_elem_alloc(const struct nft_ctx *ctx,
 					      int msg_type,
 					      struct nft_set *set)
 {
@@ -7471,13 +7471,11 @@ static int __nft_set_catchall_flush(const struct nft_ctx *ctx,
 {
 	struct nft_trans *trans;
 
-	trans = nft_trans_alloc_gfp(ctx, NFT_MSG_DELSETELEM,
-				    sizeof(struct nft_trans_elem), GFP_KERNEL);
+	trans = nft_trans_elem_alloc(ctx, NFT_MSG_DELSETELEM, set);
 	if (!trans)
 		return -ENOMEM;
 
 	nft_setelem_data_deactivate(ctx->net, set, elem_priv);
-	nft_trans_elem_set(trans) = set;
 	nft_trans_elem_priv(trans) = elem_priv;
 	nft_trans_commit_list_add_tail(ctx->net, trans);
 
