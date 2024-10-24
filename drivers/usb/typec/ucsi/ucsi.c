@@ -1057,6 +1057,15 @@ static int ucsi_register_partner(struct ucsi_connector *con)
 
 	con->partner = partner;
 
+	if ((con->ucsi->version >= UCSI_VERSION_3_0) &&
+	    (UCSI_CONSTAT_PARTNER_FLAGS(con->status.flags) &
+	     UCSI_CONSTAT_PARTNER_FLAG_USB4_GEN4))
+		typec_partner_set_usb_mode(partner, USB_MODE_USB4);
+	else if ((con->ucsi->version >= UCSI_VERSION_2_0) &&
+		 (UCSI_CONSTAT_PARTNER_FLAGS(con->status.flags) &
+		  UCSI_CONSTAT_PARTNER_FLAG_USB4_GEN3))
+		typec_partner_set_usb_mode(partner, USB_MODE_USB4);
+
 	return 0;
 }
 
@@ -1587,6 +1596,13 @@ static int ucsi_register_port(struct ucsi *ucsi, struct ucsi_connector *con)
 		*accessory++ = TYPEC_ACCESSORY_AUDIO;
 	if (con->cap.op_mode & UCSI_CONCAP_OPMODE_DEBUG_ACCESSORY)
 		*accessory = TYPEC_ACCESSORY_DEBUG;
+
+	if (UCSI_CONCAP_USB2_SUPPORT(con))
+		cap->usb_capability |= USB_CAPABILITY_USB2;
+	if (UCSI_CONCAP_USB3_SUPPORT(con))
+		cap->usb_capability |= USB_CAPABILITY_USB3;
+	if (UCSI_CONCAP_USB4_SUPPORT(con))
+		cap->usb_capability |= USB_CAPABILITY_USB4;
 
 	cap->driver_data = con;
 	cap->ops = &ucsi_ops;
