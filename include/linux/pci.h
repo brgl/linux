@@ -434,6 +434,7 @@ struct pci_dev {
 	unsigned int	ats_enabled:1;		/* Address Translation Svc */
 	unsigned int	pasid_enabled:1;	/* Process Address Space ID */
 	unsigned int	pri_enabled:1;		/* Page Request Interface */
+	unsigned int	tph_enabled:1;		/* TLP Processing Hints */
 	unsigned int	is_managed:1;		/* Managed via devres */
 	unsigned int	is_msi_managed:1;	/* MSI release via devres installed */
 	unsigned int	needs_freset:1;		/* Requires fundamental reset */
@@ -534,6 +535,12 @@ struct pci_dev {
 
 	/* These methods index pci_reset_fn_methods[] */
 	u8 reset_methods[PCI_NUM_RESET_METHODS]; /* In priority order */
+
+#ifdef CONFIG_PCIE_TPH
+	u16		tph_cap;	/* TPH capability offset */
+	u8		tph_mode;	/* TPH mode */
+	u8		tph_req_type;	/* TPH requester type */
+#endif
 };
 
 static inline struct pci_dev *pci_physfn(struct pci_dev *dev)
@@ -625,27 +632,6 @@ void pci_set_host_bridge_release(struct pci_host_bridge *bridge,
 				 void *release_data);
 
 int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge);
-
-/*
- * The first PCI_BRIDGE_RESOURCE_NUM PCI bus resources (those that correspond
- * to P2P or CardBus bridge windows) go in a table.  Additional ones (for
- * buses below host bridges or subtractive decode bridges) go in the list.
- * Use pci_bus_for_each_resource() to iterate through all the resources.
- */
-
-/*
- * PCI_SUBTRACTIVE_DECODE means the bridge forwards the window implicitly
- * and there's no way to program the bridge with the details of the window.
- * This does not apply to ACPI _CRS windows, even with the _DEC subtractive-
- * decode bit set, because they are explicit and can be programmed with _SRS.
- */
-#define PCI_SUBTRACTIVE_DECODE	0x1
-
-struct pci_bus_resource {
-	struct list_head	list;
-	struct resource		*res;
-	unsigned int		flags;
-};
 
 #define PCI_REGION_FLAG_MASK	0x0fU	/* These bits of resource flags tell us the PCI region flags */
 
@@ -1498,8 +1484,7 @@ void pci_add_resource(struct list_head *resources, struct resource *res);
 void pci_add_resource_offset(struct list_head *resources, struct resource *res,
 			     resource_size_t offset);
 void pci_free_resource_list(struct list_head *resources);
-void pci_bus_add_resource(struct pci_bus *bus, struct resource *res,
-			  unsigned int flags);
+void pci_bus_add_resource(struct pci_bus *bus, struct resource *res);
 struct resource *pci_bus_resource_n(const struct pci_bus *bus, int n);
 void pci_bus_remove_resources(struct pci_bus *bus);
 void pci_bus_remove_resource(struct pci_bus *bus, struct resource *res);
