@@ -884,6 +884,32 @@ static void wmi_dev_remove(struct device *dev)
 		dev_warn(dev, "failed to disable device\n");
 }
 
+static void wmi_dev_shutdown(struct device *dev)
+{
+	struct wmi_driver *wdriver;
+	struct wmi_block *wblock;
+
+	if (dev->driver) {
+		wdriver = drv_to_wdrv(dev->driver);
+		wblock = dev_to_wblock(dev);
+
+		/*
+		 * Some machines return bogus WMI event data when disabling
+		 * the WMI event. Because of this we must prevent the associated
+		 * WMI driver from receiving new WMI events before disabling it.
+		 */
+		down_write(&wblock->notify_lock);
+		wblock->driver_ready = false;
+		up_write(&wblock->notify_lock);
+
+		if (wdriver->shutdown)
+			wdriver->shutdown(to_wmi_device(dev));
+
+		if (ACPI_FAILURE(wmi_method_enable(wblock, false)))
+			dev_warn(dev, "Failed to disable device\n");
+	}
+}
+
 static struct class wmi_bus_class = {
 	.name = "wmi_bus",
 };
@@ -895,6 +921,7 @@ static const struct bus_type wmi_bus_type = {
 	.uevent = wmi_dev_uevent,
 	.probe = wmi_dev_probe,
 	.remove = wmi_dev_remove,
+	.shutdown = wmi_dev_shutdown,
 };
 
 static const struct device_type wmi_type_event = {
@@ -1301,7 +1328,7 @@ static struct platform_driver acpi_wmi_driver = {
 		.acpi_match_table = wmi_device_ids,
 	},
 	.probe = acpi_wmi_probe,
-	.remove_new = acpi_wmi_remove,
+	.remove = acpi_wmi_remove,
 };
 
 static int __init acpi_wmi_init(void)
