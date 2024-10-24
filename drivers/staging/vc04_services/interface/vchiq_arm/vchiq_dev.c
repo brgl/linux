@@ -288,7 +288,7 @@ static int vchiq_irq_queue_bulk_tx_rx(struct vchiq_instance *instance,
 {
 	struct vchiq_service *service;
 	struct bulk_waiter_node *waiter = NULL, *iter;
-	void *userdata;
+	struct vchiq_bulk bulk_params = {};
 	int status = 0;
 	int ret;
 
@@ -303,12 +303,14 @@ static int vchiq_irq_queue_bulk_tx_rx(struct vchiq_instance *instance,
 			goto out;
 		}
 
-		userdata = &waiter->bulk_waiter;
+		bulk_params.uoffset = args->data;
+		bulk_params.mode = args->mode;
+		bulk_params.size = args->size;
+		bulk_params.dir = dir;
+		bulk_params.userdata = &waiter->bulk_waiter;
 
-		status = vchiq_bulk_xfer_blocking_interruptible(instance, args->handle,
-								NULL, args->data, args->size,
-								userdata, dir);
-
+		status = vchiq_bulk_xfer_blocking(instance, args->handle,
+						  &bulk_params);
 	} else if (args->mode == VCHIQ_BULK_MODE_WAITING) {
 		mutex_lock(&instance->bulk_waiter_list_mutex);
 		list_for_each_entry(iter, &instance->bulk_waiter_list,
@@ -328,16 +330,18 @@ static int vchiq_irq_queue_bulk_tx_rx(struct vchiq_instance *instance,
 		}
 		dev_dbg(service->state->dev, "arm: found bulk_waiter %pK for pid %d\n",
 			waiter, current->pid);
-		userdata = &waiter->bulk_waiter;
 
-		status = vchiq_bulk_xfer_waiting_interruptible(instance, args->handle, userdata);
+		status = vchiq_bulk_xfer_waiting(instance, args->handle,
+						 &waiter->bulk_waiter);
 	} else {
-		userdata = args->userdata;
+		bulk_params.uoffset = args->data;
+		bulk_params.mode = args->mode;
+		bulk_params.size = args->size;
+		bulk_params.dir = dir;
+		bulk_params.userdata = args->userdata;
 
-		status = vchiq_bulk_xfer_callback_interruptible(instance, args->handle, NULL,
-								args->data, args->size,
-								args->mode, userdata, dir);
-
+		status = vchiq_bulk_xfer_callback(instance, args->handle,
+						  &bulk_params);
 	}
 
 	if (!waiter) {

@@ -9,52 +9,37 @@
 
 void rtw_hal_chip_configure(struct adapter *padapter)
 {
-	if (padapter->HalFunc.intf_chip_configure)
-		padapter->HalFunc.intf_chip_configure(padapter);
+	rtl8723bs_interface_configure(padapter);
 }
 
 void rtw_hal_read_chip_info(struct adapter *padapter)
 {
-	if (padapter->HalFunc.read_adapter_info)
-		padapter->HalFunc.read_adapter_info(padapter);
+	ReadAdapterInfo8723BS(padapter);
 }
 
 void rtw_hal_read_chip_version(struct adapter *padapter)
 {
-	if (padapter->HalFunc.read_chip_version)
-		padapter->HalFunc.read_chip_version(padapter);
+	rtl8723b_read_chip_version(padapter);
 }
 
 void rtw_hal_def_value_init(struct adapter *padapter)
 {
-	if (is_primary_adapter(padapter))
-		if (padapter->HalFunc.init_default_value)
-			padapter->HalFunc.init_default_value(padapter);
+	rtl8723bs_init_default_value(padapter);
 }
 
 void rtw_hal_free_data(struct adapter *padapter)
 {
 	/* free HAL Data */
 	rtw_hal_data_deinit(padapter);
-
-	if (is_primary_adapter(padapter))
-		if (padapter->HalFunc.free_hal_data)
-			padapter->HalFunc.free_hal_data(padapter);
 }
 
 void rtw_hal_dm_init(struct adapter *padapter)
 {
-	if (is_primary_adapter(padapter))
-		if (padapter->HalFunc.dm_init)
-			padapter->HalFunc.dm_init(padapter);
+	rtl8723b_init_dm_priv(padapter);
 }
 
 void rtw_hal_dm_deinit(struct adapter *padapter)
 {
-	/*  cancel dm  timer */
-	if (is_primary_adapter(padapter))
-		if (padapter->HalFunc.dm_deinit)
-			padapter->HalFunc.dm_deinit(padapter);
 }
 
 static void rtw_hal_init_opmode(struct adapter *padapter)
@@ -82,7 +67,7 @@ uint rtw_hal_init(struct adapter *padapter)
 	uint status;
 	struct dvobj_priv *dvobj = adapter_to_dvobj(padapter);
 
-	status = padapter->HalFunc.hal_init(padapter);
+	status = rtl8723bs_hal_init(padapter);
 
 	if (status == _SUCCESS) {
 		rtw_hal_init_opmode(padapter);
@@ -111,7 +96,7 @@ uint rtw_hal_deinit(struct adapter *padapter)
 	uint status = _SUCCESS;
 	struct dvobj_priv *dvobj = adapter_to_dvobj(padapter);
 
-	status = padapter->HalFunc.hal_deinit(padapter);
+	status = rtl8723bs_hal_deinit(padapter);
 
 	if (status == _SUCCESS) {
 		padapter = dvobj->padapters;
@@ -161,14 +146,12 @@ void rtw_hal_set_odm_var(struct adapter *padapter, enum hal_odm_variable eVariab
 
 void rtw_hal_enable_interrupt(struct adapter *padapter)
 {
-	if (padapter->HalFunc.enable_interrupt)
-		padapter->HalFunc.enable_interrupt(padapter);
+	EnableInterrupt8723BSdio(padapter);
 }
 
 void rtw_hal_disable_interrupt(struct adapter *padapter)
 {
-	if (padapter->HalFunc.disable_interrupt)
-		padapter->HalFunc.disable_interrupt(padapter);
+	DisableInterrupt8723BSdio(padapter);
 }
 
 u8 rtw_hal_check_ips_status(struct adapter *padapter)
@@ -227,29 +210,22 @@ s32	rtw_hal_mgnt_xmit(struct adapter *padapter, struct xmit_frame *pmgntframe)
 
 s32	rtw_hal_init_xmit_priv(struct adapter *padapter)
 {
-	if (padapter->HalFunc.init_xmit_priv)
-		return padapter->HalFunc.init_xmit_priv(padapter);
-	return _FAIL;
+	return rtl8723bs_init_xmit_priv(padapter);
 }
 
 void rtw_hal_free_xmit_priv(struct adapter *padapter)
 {
-	if (padapter->HalFunc.free_xmit_priv)
-		padapter->HalFunc.free_xmit_priv(padapter);
+	rtl8723bs_free_xmit_priv(padapter);
 }
 
 s32	rtw_hal_init_recv_priv(struct adapter *padapter)
 {
-	if (padapter->HalFunc.init_recv_priv)
-		return padapter->HalFunc.init_recv_priv(padapter);
-
-	return _FAIL;
+	return rtl8723bs_init_recv_priv(padapter);
 }
 
 void rtw_hal_free_recv_priv(struct adapter *padapter)
 {
-	if (padapter->HalFunc.free_recv_priv)
-		padapter->HalFunc.free_recv_priv(padapter);
+	rtl8723bs_free_recv_priv(padapter);
 }
 
 void rtw_hal_update_ra_mask(struct sta_info *psta, u8 rssi_level)
