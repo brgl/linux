@@ -62,19 +62,6 @@ config I2C_AMD756
 	  This driver can also be built as a module.  If so, the module
 	  will be called i2c-amd756.
 
-config I2C_AMD756_S4882
-	tristate "SMBus multiplexing on the Tyan S4882"
-	depends on I2C_AMD756 && X86
-	help
-	  Enabling this option will add specific SMBus support for the Tyan
-	  S4882 motherboard.  On this 4-CPU board, the SMBus is multiplexed
-	  over 8 different channels, where the various memory module EEPROMs
-	  and temperature sensors live.  Saying yes here will give you access
-	  to these in addition to the trunk.
-
-	  This driver can also be built as a module.  If so, the module
-	  will be called i2c-amd756-s4882.
-
 config I2C_AMD8111
 	tristate "AMD 8111"
 	depends on PCI && HAS_IOPORT
@@ -94,6 +81,23 @@ config I2C_AMD_MP2
 
 	  This driver can also be built as modules.  If so, the modules will
 	  be called i2c-amd-mp2-pci and i2c-amd-mp2-plat.
+
+config I2C_AMD_ASF
+	tristate "AMD ASF I2C Controller Support"
+	depends on I2C_PIIX4
+	select I2C_SLAVE
+	help
+	  This option enables support for the AMD ASF (Alert Standard Format)
+	  I2C controller. The AMD ASF controller is an SMBus controller with
+	  built-in ASF functionality, allowing it to issue generic SMBus
+	  packets and communicate with the DASH controller using MCTP over
+	  ASF.
+
+	  If you have an AMD system with ASF support and want to enable this
+	  functionality, say Y or M here. If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the module will
+	  be called i2c_amd_asf_plat.
 
 config I2C_HIX5HD2
 	tristate "Hix5hd2 high-speed I2C driver"
@@ -160,6 +164,7 @@ config I2C_I801
 	    Meteor Lake (SOC and PCH)
 	    Birch Stream (SOC)
 	    Arrow Lake (SOC)
+	    Panther Lake (SOC)
 
 	  This driver can also be built as a module.  If so, the module
 	  will be called i2c-i801.
@@ -249,19 +254,6 @@ config I2C_NFORCE2
 
 	  This driver can also be built as a module.  If so, the module
 	  will be called i2c-nforce2.
-
-config I2C_NFORCE2_S4985
-	tristate "SMBus multiplexing on the Tyan S4985"
-	depends on I2C_NFORCE2 && X86
-	help
-	  Enabling this option will add specific SMBus support for the Tyan
-	  S4985 motherboard.  On this 4-CPU board, the SMBus is multiplexed
-	  over 4 different channels, where the various memory module EEPROMs
-	  live.  Saying yes here will give you access to these in addition
-	  to the trunk.
-
-	  This driver can also be built as a module.  If so, the module
-	  will be called i2c-nforce2-s4985.
 
 config I2C_NVIDIA_GPU
 	tristate "NVIDIA GPU I2C controller"
