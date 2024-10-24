@@ -1311,7 +1311,7 @@ static void dw100_hw_set_destination(struct dw100_device *dw_dev,
 	}
 
 	dev_dbg(&dw_dev->pdev->dev,
-		"Set HW source registers for %ux%u - stride %u, pixfmt: %p4cc, dma:%pad\n",
+		"Set HW destination registers for %ux%u - stride %u, pixfmt: %p4cc, dma:%pad\n",
 		width, height, stride, &fourcc, &addr_y);
 
 	/* Pixel Format */
@@ -1688,7 +1688,7 @@ MODULE_DEVICE_TABLE(of, dw100_dt_ids);
 
 static struct platform_driver dw100_driver = {
 	.probe		= dw100_probe,
-	.remove_new	= dw100_remove,
+	.remove		= dw100_remove,
 	.driver		= {
 		.name	= DRV_NAME,
 		.pm = &dw100_pm,
