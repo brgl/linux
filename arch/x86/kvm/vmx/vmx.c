@@ -6795,7 +6795,7 @@ void vmx_hwapic_isr_update(struct kvm_vcpu *vcpu, int max_isr)
 	}
 }
 
-static void vmx_set_rvi(int vector)
+static void vmx_seti(int vector)
 {
 	u16 status;
 	u8 old;
@@ -6851,7 +6851,7 @@ int vmx_sync_pir_to_irr(struct kvm_vcpu *vcpu)
 	 * a VM-Exit and the subsequent entry will call sync_pir_to_irr.
 	 */
 	if (!is_guest_mode(vcpu) && kvm_vcpu_apicv_active(vcpu))
-		vmx_set_rvi(max_irr);
+		vmx_seti(max_irr);
 	else if (got_posted_interrupt)
 		kvm_make_request(KVM_REQ_EVENT, vcpu);
 
