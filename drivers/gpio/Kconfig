@@ -6,6 +6,9 @@
 config GPIOLIB_LEGACY
 	def_bool y
 
+config HAVE_SHARED_GPIOS
+	bool
+
 menuconfig GPIOLIB
 	bool "GPIO Support"
 	help
@@ -41,6 +44,11 @@ config GPIO_ACPI
 config GPIOLIB_IRQCHIP
 	select IRQ_DOMAIN
 	bool
+
+config GPIO_SHARED
+	def_bool y
+	depends on HAVE_SHARED_GPIOS || COMPILE_TEST
+	select AUXILIARY_BUS
 
 config DEBUG_GPIO
 	bool "Debug GPIO calls"
