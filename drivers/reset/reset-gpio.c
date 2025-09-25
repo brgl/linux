@@ -100,6 +100,11 @@ static int reset_gpio_probe(struct auxiliary_device *adev,
 	return devm_reset_controller_register(dev, &priv->rc);
 }
 
+static void reset_gpio_remove(struct auxiliary_device *adev)
+{
+	printk("BGBG %s\n", __func__);
+}
+
 static const struct auxiliary_device_id reset_gpio_ids[] = {
 	{ .name = "reset.gpio" },
 	{}
@@ -108,6 +113,7 @@ MODULE_DEVICE_TABLE(auxiliary, reset_gpio_ids);
 
 static struct auxiliary_driver reset_gpio_driver = {
 	.probe		= reset_gpio_probe,
+	.remove		= reset_gpio_remove,
 	.id_table	= reset_gpio_ids,
 	.driver	= {
 		.name = "reset-gpio",
