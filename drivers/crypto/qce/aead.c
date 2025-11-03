@@ -86,6 +86,9 @@ static void qce_aead_done(void *data)
 		}
 	}
 
+	if (qce->qce_cmd_desc_enable)
+		qce_bam_release_lock(qce);
+
 	qce->async_req_done(qce, error);
 }
 
@@ -416,7 +419,7 @@ qce_aead_async_req_handle(struct crypto_async_request *async_req)
 	enum dma_data_direction dir_src, dir_dst;
 	bool diff_dst;
 	int dst_nents, src_nents, ret;
-
+	pr_err("##debugudit## qce_aead_async_req_handle");
 	if (IS_CCM_RFC4309(rctx->flags)) {
 		memset(rctx->ccm_rfc4309_iv, 0, QCE_MAX_IV_SIZE);
 		rctx->ccm_rfc4309_iv[0] = 3;
@@ -432,6 +435,9 @@ qce_aead_async_req_handle(struct crypto_async_request *async_req)
 		rctx->assoclen = req->assoclen - 8;
 	else
 		rctx->assoclen = req->assoclen;
+
+	if (qce->qce_cmd_desc_enable)
+		qce_bam_acquire_lock(qce);
 
 	diff_dst = (req->src != req->dst) ? true : false;
 	dir_src = diff_dst ? DMA_TO_DEVICE : DMA_BIDIRECTIONAL;
@@ -786,7 +792,7 @@ static int qce_aead_register_one(const struct qce_aead_def *def, struct qce_devi
 	alg->init			= qce_aead_init;
 	alg->exit			= qce_aead_exit;
 
-	alg->base.cra_priority		= 400;
+	alg->base.cra_priority		= 6000;
 	alg->base.cra_flags		= CRYPTO_ALG_ASYNC |
 					  CRYPTO_ALG_ALLOCATES_MEMORY |
 					  CRYPTO_ALG_KERN_DRIVER_ONLY |
