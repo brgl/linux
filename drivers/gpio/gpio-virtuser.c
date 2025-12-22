@@ -935,7 +935,7 @@ static int gpio_virtuser_probe(struct platform_device *pdev)
 		return ret;
 
 	for (i = 0; i < num_ids; i++) {
-		descs = devm_gpiod_get_array(dev, ids[i], GPIOD_ASIS);
+		descs = devm_gpiod_get_array(dev, ids[i], GPIOD_OUT_HIGH);
 		if (IS_ERR(descs))
 			return dev_err_probe(dev, PTR_ERR(descs),
 					     "Failed to request the '%s' GPIOs\n",
