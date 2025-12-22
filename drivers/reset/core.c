@@ -1438,3 +1438,7 @@ int reset_control_get_count(struct device *dev)
 	return -ENOENT;
 }
 EXPORT_SYMBOL_GPL(reset_control_get_count);
+
+MODULE_AUTHOR("Philipp Zabel <p.zabel@pengutronix.de>");
+MODULE_DESCRIPTION("Reset controller core");
+MODULE_LICENSE("GPL");

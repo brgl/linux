@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
-obj-y += core.o
+obj-$(CONFIG_RESET_CONTROLLER) += reset-core.o
+reset-core-y := core.o
+
 obj-y += amlogic/
 obj-y += hisilicon/
 obj-y += starfive/

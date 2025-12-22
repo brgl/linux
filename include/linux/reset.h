@@ -68,7 +68,7 @@ enum reset_control_flags {
 							  RESET_CONTROL_FLAGS_BIT_DEASSERTED,
 };
 
-#ifdef CONFIG_RESET_CONTROLLER
+#if IS_ENABLED(CONFIG_RESET_CONTROLLER)
 
 int reset_control_reset(struct reset_control *rstc);
 int reset_control_rearm(struct reset_control *rstc);

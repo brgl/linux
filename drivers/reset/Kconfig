@@ -3,7 +3,7 @@ config ARCH_HAS_RESET_CONTROLLER
 	bool
 
 menuconfig RESET_CONTROLLER
-	bool "Reset Controller Support"
+	tristate "Reset Controller Support"
 	default y if ARCH_HAS_RESET_CONTROLLER
 	help
 	  Generic Reset Controller support.
