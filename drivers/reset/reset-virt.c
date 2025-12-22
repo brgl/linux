@@ -11,10 +11,17 @@
 static int reset_virt_probe(struct platform_device *pdev)
 {
 	struct reset_control *reset;
+	int ret;
 
 	reset = devm_reset_control_get_shared(&pdev->dev, NULL);
 	if (IS_ERR(reset))
 		return PTR_ERR(reset);
+
+	ret = reset_control_acquire(reset);
+	if (ret)
+		return ret;
+
+	reset_control_release(reset);
 
 	dev_info(&pdev->dev, "BGBG good\n");
 
