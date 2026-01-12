@@ -257,6 +257,12 @@ config NVMEM_VIRT
 	help
 	  NVMEM Virtual Consumer module.
 
+config NVMEM_SIM
+	tristate "NVMEM Simulator Module"
+	depends on EXPERT
+	help
+	  NVMEM testing driver.
+
 config NVMEM_S32G_OCOTP
 	tristate "S32G SoC OCOTP support"
 	depends on ARCH_S32
