@@ -21,13 +21,16 @@
 
 #define pr_fmt(fmt)	"OF: " fmt
 
+#include <linux/cleanup.h>
 #include <linux/ctype.h>
 #include <linux/of.h>
 #include <linux/of_address.h>
 #include <linux/of_device.h>
 #include <linux/of_graph.h>
 #include <linux/of_irq.h>
+#include <linux/slab.h>
 #include <linux/string.h>
+#include <linux/string_helpers.h>
 #include <linux/moduleparam.h>
 
 #include "of_private.h"
@@ -1635,6 +1638,30 @@ static int of_fwnode_add_links(struct fwnode_handle *fwnode)
 	return 0;
 }
 
+static char **of_fwnode_get_property_names(const struct fwnode_handle *fwnode)
+{
+	struct device_node *np = to_of_node(fwnode);
+	size_t count = 0, i = 0;
+	struct property *prop;
+
+	for_each_property_of_node(np, prop)
+		count++;
+
+	char **names __free(kfree_strarray0) = kcalloc(count, sizeof(*names), GFP_KERNEL);
+	if (!names)
+		return ERR_PTR(-ENOMEM);
+
+	for_each_property_of_node(np, prop) {
+		names[i] = kstrdup(prop->name, GFP_KERNEL);
+		if (!names[i])
+			return ERR_PTR(-ENOMEM);
+
+		i++;
+	}
+
+	return no_free_ptr(names);
+}
+
 const struct fwnode_operations of_fwnode_ops = {
 	.get = of_fwnode_get,
 	.put = of_fwnode_put,
@@ -1659,5 +1686,6 @@ const struct fwnode_operations of_fwnode_ops = {
 	.iomap = of_fwnode_iomap,
 	.irq_get = of_fwnode_irq_get,
 	.add_links = of_fwnode_add_links,
+	.get_property_names = of_fwnode_get_property_names,
 };
 EXPORT_SYMBOL_GPL(of_fwnode_ops);
