@@ -251,6 +251,12 @@ config NVMEM_NINTENDO_OTP
 	  This driver can also be built as a module. If so, the module
 	  will be called nvmem-nintendo-otp.
 
+config NVMEM_VIRT
+	tristate "NVMEM Virtual Consumer"
+	depends on EXPERT
+	help
+	  NVMEM Virtual Consumer module.
+
 config NVMEM_S32G_OCOTP
 	tristate "S32G SoC OCOTP support"
 	depends on ARCH_S32
