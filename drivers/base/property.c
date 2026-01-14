@@ -874,6 +874,22 @@ fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
 EXPORT_SYMBOL_GPL(fwnode_get_named_child_node);
 
 /**
+ * fwnode_get_property_names - Return a NULL-terminated array of the names
+ *                             of all properties exposed by this node.
+ * @fwnode: Firmware node to get the property names for.
+ *
+ * The caller is responsible for calling kfree_strarray0() on the returned
+ * array.
+ *
+ * Returns: NULL-terminated array containing the names of all the properties
+ * of this node or IS_ERR().
+ */
+char **fwnode_get_property_names(const struct fwnode_handle *fwnode)
+{
+	return fwnode_call_ptr_op(fwnode, get_property_names);
+}
+
+/**
  * device_get_named_child_node - Return first matching named child node handle
  * @dev: Device to find the named child node for.
  * @childname: String to match child node name against.

@@ -211,6 +211,8 @@ struct fwnode_handle *fwnode_get_named_child_node(const struct fwnode_handle *fw
 struct fwnode_handle *device_get_named_child_node(const struct device *dev,
 						  const char *childname);
 
+char **fwnode_get_property_names(const struct fwnode_handle *fwnode);
+
 struct fwnode_handle *fwnode_handle_get(struct fwnode_handle *fwnode);
 
 /**
