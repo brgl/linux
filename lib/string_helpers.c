@@ -804,6 +804,27 @@ void kfree_strarray(char **array, size_t n)
 }
 EXPORT_SYMBOL_GPL(kfree_strarray);
 
+/**
+ * kfree_strarray0 - Free a number of dynamically allocated string contained
+ *                   in a NULL-terminated array and the array itself.
+ * @array: Dynamically allocated array of dynamically allocated strings. The
+ *         last entry in the array must be NULL.
+ *
+ * Passing a NULL @array if allowed.
+ */
+void kfree_strarray0(char **array)
+{
+	char **pos = array;
+
+	if (!array)
+		return;
+
+	while (*pos)
+		kfree(*pos++);
+	kfree(array);
+}
+EXPORT_SYMBOL_GPL(kfree_strarray0);
+
 struct strarray {
 	char **array;
 	size_t n;
