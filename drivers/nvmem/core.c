@@ -1106,7 +1106,7 @@ struct nvmem_device *devm_nvmem_register(struct device *dev,
 }
 EXPORT_SYMBOL_GPL(devm_nvmem_register);
 
-static struct nvmem_device *__nvmem_device_get(void *data,
+static struct nvmem_device *nvmem_device_match(void *data,
 			int (*match)(struct device *dev, const void *data))
 {
 	struct nvmem_device *nvmem = NULL;
@@ -1134,13 +1134,6 @@ static struct nvmem_device *__nvmem_device_get(void *data,
 	return nvmem;
 }
 
-static void __nvmem_device_put(struct nvmem_device *nvmem)
-{
-	put_device(&nvmem->dev);
-	module_put(nvmem->owner);
-	kref_put(&nvmem->refcnt, nvmem_device_release);
-}
-
 #if IS_ENABLED(CONFIG_OF)
 /**
  * of_nvmem_device_get() - Get nvmem device from a given id
@@ -1165,7 +1158,7 @@ struct nvmem_device *of_nvmem_device_get(struct device_node *np, const char *id)
 	if (!nvmem_np)
 		return ERR_PTR(-ENOENT);
 
-	nvmem = __nvmem_device_get(nvmem_np, device_match_of_node);
+	nvmem = nvmem_device_match(nvmem_np, device_match_of_node);
 	of_node_put(nvmem_np);
 	return nvmem;
 }
@@ -1193,7 +1186,7 @@ struct nvmem_device *nvmem_device_get(struct device *dev, const char *dev_name)
 
 	}
 
-	return __nvmem_device_get((void *)dev_name, device_match_name);
+	return nvmem_device_match((void *)dev_name, device_match_name);
 }
 EXPORT_SYMBOL_GPL(nvmem_device_get);
 
@@ -1209,7 +1202,7 @@ EXPORT_SYMBOL_GPL(nvmem_device_get);
 struct nvmem_device *nvmem_device_find(void *data,
 			int (*match)(struct device *dev, const void *data))
 {
-	return __nvmem_device_get(data, match);
+	return nvmem_device_match(data, match);
 }
 EXPORT_SYMBOL_GPL(nvmem_device_find);
 
@@ -1253,7 +1246,9 @@ EXPORT_SYMBOL_GPL(devm_nvmem_device_put);
  */
 void nvmem_device_put(struct nvmem_device *nvmem)
 {
-	__nvmem_device_put(nvmem);
+	put_device(&nvmem->dev);
+	module_put(nvmem->owner);
+	kref_put(&nvmem->refcnt, nvmem_device_release);
 }
 EXPORT_SYMBOL_GPL(nvmem_device_put);
 
@@ -1332,7 +1327,7 @@ nvmem_cell_get_from_lookup(struct device *dev, const char *con_id)
 		if ((strcmp(lookup->dev_id, dev_id) == 0) &&
 		    (strcmp(lookup->con_id, con_id) == 0)) {
 			/* This is the right entry. */
-			nvmem = __nvmem_device_get((void *)lookup->nvmem_name,
+			nvmem = nvmem_device_match((void *)lookup->nvmem_name,
 						   device_match_name);
 			if (IS_ERR(nvmem))
 				/* Provider may not be registered yet. */
@@ -1341,12 +1336,12 @@ nvmem_cell_get_from_lookup(struct device *dev, const char *con_id)
 			cell_entry = nvmem_find_cell_entry_by_name(nvmem,
 								   lookup->cell_name);
 			if (!cell_entry) {
-				__nvmem_device_put(nvmem);
+				nvmem_device_put(nvmem);
 				cell = ERR_PTR(-ENOENT);
 			} else {
 				cell = nvmem_create_cell(cell_entry, con_id, 0);
 				if (IS_ERR(cell))
-					__nvmem_device_put(nvmem);
+					nvmem_device_put(nvmem);
 			}
 			break;
 		}
@@ -1444,7 +1439,7 @@ struct nvmem_cell *of_nvmem_cell_get(struct device_node *np, const char *id)
 		}
 	}
 
-	nvmem = __nvmem_device_get(nvmem_np, device_match_of_node);
+	nvmem = nvmem_device_match(nvmem_np, device_match_of_node);
 	of_node_put(nvmem_np);
 	if (IS_ERR(nvmem)) {
 		of_node_put(cell_np);
@@ -1454,7 +1449,7 @@ struct nvmem_cell *of_nvmem_cell_get(struct device_node *np, const char *id)
 	ret = nvmem_layout_module_get_optional(nvmem);
 	if (ret) {
 		of_node_put(cell_np);
-		__nvmem_device_put(nvmem);
+		nvmem_device_put(nvmem);
 		return ERR_PTR(ret);
 	}
 
@@ -1463,14 +1458,14 @@ struct nvmem_cell *of_nvmem_cell_get(struct device_node *np, const char *id)
 	if (!cell_entry) {
 		nvmem_layout_module_put(nvmem);
 		ret = nvmem->layout ? -EPROBE_DEFER : -ENOENT;
-		__nvmem_device_put(nvmem);
+		nvmem_device_put(nvmem);
 		return ERR_PTR(ret);
 	}
 
 	cell = nvmem_create_cell(cell_entry, id, cell_index);
 	if (IS_ERR(cell)) {
 		nvmem_layout_module_put(nvmem);
-		__nvmem_device_put(nvmem);
+		nvmem_device_put(nvmem);
 	}
 
 	return cell;
@@ -1585,7 +1580,7 @@ void nvmem_cell_put(struct nvmem_cell *cell)
 
 	kfree(cell);
 	nvmem_layout_module_put(nvmem);
-	__nvmem_device_put(nvmem);
+	nvmem_device_put(nvmem);
 }
 EXPORT_SYMBOL_GPL(nvmem_cell_put);
 
