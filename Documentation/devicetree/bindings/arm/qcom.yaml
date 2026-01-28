@@ -913,6 +913,11 @@ properties:
 
       - items:
           - enum:
+              - qcom,nord-evk
+          - const: qcom,sa8797p
+
+      - items:
+          - enum:
               - google,blueline
               - google,crosshatch
               - huawei,planck
