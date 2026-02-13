@@ -98,6 +98,15 @@ config INTERCONNECT_QCOM_MSM8996
 	  This is a driver for the Qualcomm Network-on-Chip on msm8996-based
 	  platforms.
 
+config INTERCONNECT_QCOM_NORD
+       tristate "Qualcomm NORD interconnect driver"
+       depends on INTERCONNECT_QCOM_RPMH_POSSIBLE
+       select INTERCONNECT_QCOM_RPMH
+       select INTERCONNECT_QCOM_BCM_VOTER
+       help
+         This is a driver for the Qualcomm Network-on-Chip on nord-based
+         platforms.
+
 config INTERCONNECT_QCOM_OSM_L3
 	tristate "Qualcomm OSM L3 interconnect driver"
 	depends on INTERCONNECT_QCOM || COMPILE_TEST
