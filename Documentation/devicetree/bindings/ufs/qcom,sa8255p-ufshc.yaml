@@ -11,8 +11,12 @@ maintainers:
 
 properties:
   compatible:
-    const: qcom,sa8255p-ufshc
-
+    oneOf:
+      - enum:
+          - qcom,sa8255p-ufshc
+      - items:
+          - const: qcom,nord-auto-ufshc
+          - const: qcom,sa8255p-ufshc
   reg:
     maxItems: 1
 
