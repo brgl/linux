@@ -418,6 +418,14 @@ static int gpio_sim_setup_sysfs(struct gpio_sim_chip *chip)
 	return devm_add_action_or_reset(dev, gpio_sim_sysfs_remove, chip);
 }
 
+static int dupa_xlate(struct gpio_chip *gc, const struct of_phandle_args *gpiospec, u32 *flags)
+{
+	if (flags)
+		*flags = gpiospec->args[1];
+
+	return 4;
+}
+
 static int gpio_sim_add_bank(struct fwnode_handle *swnode, struct device *dev)
 {
 	struct gpio_sim_chip *chip;
@@ -498,6 +506,8 @@ static int gpio_sim_add_bank(struct fwnode_handle *swnode, struct device *dev)
 	gc->free = gpio_sim_free;
 	gc->dbg_show = PTR_IF(IS_ENABLED(CONFIG_DEBUG_FS), gpio_sim_dbg_show);
 	gc->can_sleep = true;
+	gc->of_xlate = dupa_xlate;
+	gc->of_gpio_n_cells = 2;
 
 	ret = devm_gpiochip_add_data(dev, gc, chip);
 	if (ret)
