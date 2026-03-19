@@ -1596,6 +1596,8 @@ static int byt_pinctrl_probe(struct platform_device *pdev)
 	struct intel_pinctrl *vg;
 	int ret;
 
+	return 0;
+
 	soc_data = intel_pinctrl_get_soc_data(pdev);
 	if (IS_ERR(soc_data))
 		return PTR_ERR(soc_data);
