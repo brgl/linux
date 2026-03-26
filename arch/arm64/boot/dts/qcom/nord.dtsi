@@ -3948,6 +3948,7 @@
 			lanes-per-direction = <2>;
 			iommus = <&apps_smmu_0 0x14c0 0x0>;
 			dma-coherent;
+			msi-parent = <&gic_its 0x14c0>;
 		};
 
 		tcsr_mutex: hwlock@1f40000 {
