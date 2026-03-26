@@ -488,7 +488,6 @@
 	ufs_mem_hc: ufshc@1d44000 {
 		compatible = "qcom,nord-auto-ufshc",
 			     "qcom,sa8255p-ufshc";
-		msi-parent = <&gic_its 0x14c0>;
 		power-domains = <&scmi3_pd 0>;
 	};
 
