@@ -1109,9 +1109,9 @@ static const struct rpmh_vreg_init_data pmau0102_vreg_data[] = {
 	RPMH_VREG("smps6",  SMPS, 6,  &pmic5_ftsmps527,  "vdd-s6"),
 	RPMH_VREG("smps7",  SMPS, 7,  &pmic5_ftsmps527,  "vdd-s7"),
 	RPMH_VREG("smps8",  SMPS, 8,  &pmic5_ftsmps527,  "vdd-s8"),
-	RPMH_VREG("ldo1",   LDO,  1,  &pmic5_nldo515,    "vdd-l1"),
-	RPMH_VREG("ldo2",   LDO,  2,  &pmic5_nldo515,    "vdd-l2"),
-	RPMH_VREG("ldo3",   LDO,  3,  &pmic5_pldo515_mv, "vdd-l3"),
+	RPMH_VREG("ldo1",   LDO,  1,  &pmic5_nldo515,    NULL),
+	RPMH_VREG("ldo2",   LDO,  2,  &pmic5_nldo515,    NULL),
+	RPMH_VREG("ldo3",   LDO,  3,  &pmic5_pldo515_mv, NULL),
 	{}
 };
 
