@@ -7,7 +7,6 @@
 
 / {
 	interrupt-parent = <&intc>;
-
 	#address-cells = <2>;
 	#size-cells = <2>;
 
@@ -900,7 +899,6 @@
 				     "rx";
 			shmem = <&pdp0_a2p>,
 				<&pdp0_p2a>;
-
 			#address-cells = <1>;
 			#size-cells = <0>;
 
@@ -925,7 +923,6 @@
 		ddr-0-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 0>;
 
 			trips {
@@ -946,7 +943,6 @@
 		cpu-0-0-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 1>;
 
 			trips {
@@ -967,7 +963,6 @@
 		cpu-0-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 2>;
 
 			trips {
@@ -988,7 +983,6 @@
 		cpu-0-2-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 3>;
 
 			trips {
@@ -1009,7 +1003,6 @@
 		cpu-0-3-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 4>;
 
 			trips {
@@ -1030,7 +1023,6 @@
 		cpu-0-4-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 5>;
 
 			trips {
@@ -1051,7 +1043,6 @@
 		cpu-0-5-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 6>;
 
 			trips {
@@ -1072,7 +1063,6 @@
 		cpullc-0-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 7>;
 
 			trips {
@@ -1093,7 +1083,6 @@
 		cpu-1-0-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 8>;
 
 			trips {
@@ -1114,7 +1103,6 @@
 		cpu-1-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 9>;
 
 			trips {
@@ -1135,7 +1123,6 @@
 		cpu-1-2-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 10>;
 
 			trips {
@@ -1156,7 +1143,6 @@
 		cpu-1-3-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 11>;
 
 			trips {
@@ -1177,7 +1163,6 @@
 		cpu-1-4-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 12>;
 
 			trips {
@@ -1198,7 +1183,6 @@
 		cpu-1-5-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 13>;
 
 			trips {
@@ -1219,7 +1203,6 @@
 		cpullc-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 14>;
 
 			trips {
@@ -1240,7 +1223,6 @@
 		ddr-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens0 15>;
 
 			trips {
@@ -1261,7 +1243,6 @@
 		ddr-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 0>;
 
 			trips {
@@ -1282,7 +1263,6 @@
 		cpu-0-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 1>;
 
 			trips {
@@ -1303,7 +1283,6 @@
 		cpu-0-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 2>;
 
 			trips {
@@ -1324,7 +1303,6 @@
 		cpu-0-2-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 3>;
 
 			trips {
@@ -1345,7 +1323,6 @@
 		cpu-0-3-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 4>;
 
 			trips {
@@ -1366,7 +1343,6 @@
 		cpu-0-4-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 5>;
 
 			trips {
@@ -1387,7 +1363,6 @@
 		cpu-0-5-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 6>;
 
 			trips {
@@ -1408,7 +1383,6 @@
 		cpullc-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 7>;
 
 			trips {
@@ -1429,7 +1403,6 @@
 		cpu-1-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 8>;
 
 			trips {
@@ -1450,7 +1423,6 @@
 		cpu-1-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 9>;
 
 			trips {
@@ -1471,7 +1443,6 @@
 		cpu-1-2-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 10>;
 
 			trips {
@@ -1492,7 +1463,6 @@
 		cpu-1-3-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 11>;
 
 			trips {
@@ -1513,7 +1483,6 @@
 		cpu-1-4-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 12>;
 
 			trips {
@@ -1534,7 +1503,6 @@
 		cpu-1-5-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 13>;
 
 			trips {
@@ -1555,7 +1523,6 @@
 		cpullc-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 14>;
 
 			trips {
@@ -1576,7 +1543,6 @@
 		ddr-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens1 15>;
 
 			trips {
@@ -1597,7 +1563,6 @@
 		amux-2-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 0>;
 
 			trips {
@@ -1618,7 +1583,6 @@
 		cpu-2-0-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 1>;
 
 			trips {
@@ -1639,7 +1603,6 @@
 		cpu-2-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 2>;
 
 			trips {
@@ -1660,7 +1623,6 @@
 		cpu-2-2-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 3>;
 
 			trips {
@@ -1681,7 +1643,6 @@
 		cpu-2-3-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 4>;
 
 			trips {
@@ -1702,7 +1663,6 @@
 		cpu-2-4-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 5>;
 
 			trips {
@@ -1723,7 +1683,6 @@
 		cpu-2-5-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 6>;
 
 			trips {
@@ -1744,7 +1703,6 @@
 		cpullc-2-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 7>;
 
 			trips {
@@ -1765,7 +1723,6 @@
 		audhvx-0-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 8>;
 
 			trips {
@@ -1786,7 +1743,6 @@
 		audhmx-0-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 9>;
 
 			trips {
@@ -1807,7 +1763,6 @@
 		audhvx-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 10>;
 
 			trips {
@@ -1828,7 +1783,6 @@
 		audhmx-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 11>;
 
 			trips {
@@ -1849,7 +1803,6 @@
 		audhvx-2-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 12>;
 
 			trips {
@@ -1870,7 +1823,6 @@
 		audhmx-2-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 13>;
 
 			trips {
@@ -1891,7 +1843,6 @@
 		pcie-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens2 15>;
 
 			trips {
@@ -1912,7 +1863,6 @@
 		amux-3-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 0>;
 
 			trips {
@@ -1933,7 +1883,6 @@
 		cpu-2-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 1>;
 
 			trips {
@@ -1954,7 +1903,6 @@
 		cpu-2-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 2>;
 
 			trips {
@@ -1975,7 +1923,6 @@
 		cpu-2-2-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 3>;
 
 			trips {
@@ -1996,7 +1943,6 @@
 		cpu-2-3-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 4>;
 
 			trips {
@@ -2017,7 +1963,6 @@
 		cpu-2-4-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 5>;
 
 			trips {
@@ -2038,7 +1983,6 @@
 		cpu-2-5-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 6>;
 
 			trips {
@@ -2059,7 +2003,6 @@
 		cpullc-2-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 7>;
 
 			trips {
@@ -2080,7 +2023,6 @@
 		audhvx-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 8>;
 
 			trips {
@@ -2101,7 +2043,6 @@
 		audhmx-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 9>;
 
 			trips {
@@ -2122,7 +2063,6 @@
 		audhvx-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 10>;
 
 			trips {
@@ -2143,7 +2083,6 @@
 		audhmx-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 11>;
 
 			trips {
@@ -2164,7 +2103,6 @@
 		audhvx-2-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 12>;
 
 			trips {
@@ -2185,7 +2123,6 @@
 		audhmx-2-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 13>;
 
 			trips {
@@ -2206,7 +2143,6 @@
 		pcie-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens3 15>;
 
 			trips {
@@ -2227,7 +2163,6 @@
 		nsphvx-0-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 0>;
 
 			trips {
@@ -2248,7 +2183,6 @@
 		nsphvx-0-2-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 1>;
 
 			trips {
@@ -2269,7 +2203,6 @@
 		nsp-0-0-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 2>;
 
 			trips {
@@ -2290,7 +2223,6 @@
 		nsp-0-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 3>;
 
 			trips {
@@ -2311,7 +2243,6 @@
 		nsphvx-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 4>;
 
 			trips {
@@ -2332,7 +2263,6 @@
 		nsphvx-1-2-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 5>;
 
 			trips {
@@ -2353,7 +2283,6 @@
 		nsp-1-0-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 6>;
 
 			trips {
@@ -2374,7 +2303,6 @@
 		nsp-1-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 7>;
 
 			trips {
@@ -2395,7 +2323,6 @@
 		nsphvx-2-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 8>;
 
 			trips {
@@ -2416,7 +2343,6 @@
 		nsphvx-2-2-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 9>;
 
 			trips {
@@ -2437,7 +2363,6 @@
 		nsp-2-0-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 10>;
 
 			trips {
@@ -2458,7 +2383,6 @@
 		nsp-2-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 11>;
 
 			trips {
@@ -2479,7 +2403,6 @@
 		nsphvx-3-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 12>;
 
 			trips {
@@ -2500,7 +2423,6 @@
 		nsphvx-3-2-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 13>;
 
 			trips {
@@ -2521,7 +2443,6 @@
 		nsp-3-0-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 14>;
 
 			trips {
@@ -2542,7 +2463,6 @@
 		nsp-3-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens4 15>;
 
 			trips {
@@ -2563,7 +2483,6 @@
 		nsphvx-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 0>;
 
 			trips {
@@ -2584,7 +2503,6 @@
 		nsphvx-0-3-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 1>;
 
 			trips {
@@ -2605,7 +2523,6 @@
 		nsp-0-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 2>;
 
 			trips {
@@ -2626,7 +2543,6 @@
 		nsp-0-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 3>;
 
 			trips {
@@ -2647,7 +2563,6 @@
 		nsphvx-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 4>;
 
 			trips {
@@ -2668,7 +2583,6 @@
 		nsphvx-1-3-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 5>;
 
 			trips {
@@ -2689,7 +2603,6 @@
 		nsp-1-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 6>;
 
 			trips {
@@ -2710,7 +2623,6 @@
 		nsp-1-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 7>;
 
 			trips {
@@ -2731,7 +2643,6 @@
 		nsphvx-2-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 8>;
 
 			trips {
@@ -2752,7 +2663,6 @@
 		nsphvx-2-3-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 9>;
 
 			trips {
@@ -2773,7 +2683,6 @@
 		nsp-2-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 10>;
 
 			trips {
@@ -2794,7 +2703,6 @@
 		nsp-2-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 11>;
 
 			trips {
@@ -2815,7 +2723,6 @@
 		nsphvx-3-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 12>;
 
 			trips {
@@ -2836,7 +2743,6 @@
 		nsphvx-3-3-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 13>;
 
 			trips {
@@ -2857,7 +2763,6 @@
 		nsp-3-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 14>;
 
 			trips {
@@ -2878,7 +2783,6 @@
 		nsp-3-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens5 15>;
 
 			trips {
@@ -2899,7 +2803,6 @@
 		amux-6-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 0>;
 
 			trips {
@@ -2920,7 +2823,6 @@
 		gpuss-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 1>;
 
 			trips {
@@ -2941,7 +2843,6 @@
 		gpuss-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 2>;
 
 			trips {
@@ -2962,7 +2863,6 @@
 		gpuss-2-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 3>;
 
 			trips {
@@ -2983,7 +2883,6 @@
 		gpu-0-0-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 4>;
 
 			trips {
@@ -3004,7 +2903,6 @@
 		gpuss-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 5>;
 
 			trips {
@@ -3025,7 +2923,6 @@
 		gpuss-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 6>;
 
 			trips {
@@ -3046,7 +2943,6 @@
 		cv-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 7>;
 
 			trips {
@@ -3067,7 +2963,6 @@
 		video-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 8>;
 
 			trips {
@@ -3088,7 +2983,6 @@
 		camera-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 9>;
 
 			trips {
@@ -3109,7 +3003,6 @@
 		ddr-2-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 10>;
 
 			trips {
@@ -3130,7 +3023,6 @@
 		ddr-3-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 11>;
 
 			trips {
@@ -3151,7 +3043,6 @@
 		gpuss-0-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 12>;
 
 			trips {
@@ -3172,7 +3063,6 @@
 		gpuss-1-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 13>;
 
 			trips {
@@ -3193,7 +3083,6 @@
 		gpuss-2-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 14>;
 
 			trips {
@@ -3214,7 +3103,6 @@
 		gpu-0-1-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens6 15>;
 
 			trips {
@@ -3235,7 +3123,6 @@
 		amux-7-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 0>;
 
 			trips {
@@ -3256,7 +3143,6 @@
 		gpuss-0-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 1>;
 
 			trips {
@@ -3277,7 +3163,6 @@
 		gpuss-1-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 2>;
 
 			trips {
@@ -3298,7 +3183,6 @@
 		gpuss-2-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 3>;
 
 			trips {
@@ -3319,7 +3203,6 @@
 		gpu-0-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 4>;
 
 			trips {
@@ -3340,7 +3223,6 @@
 		gpuss-1-2-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 5>;
 
 			trips {
@@ -3361,7 +3243,6 @@
 		gpu-1-0-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 6>;
 
 			trips {
@@ -3382,7 +3263,6 @@
 		cv-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 7>;
 
 			trips {
@@ -3403,7 +3283,6 @@
 		video-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 8>;
 
 			trips {
@@ -3424,7 +3303,6 @@
 		camera-2-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 9>;
 
 			trips {
@@ -3445,7 +3323,6 @@
 		ddr-2-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 10>;
 
 			trips {
@@ -3466,7 +3343,6 @@
 		ddr-3-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 11>;
 
 			trips {
@@ -3487,7 +3363,6 @@
 		gpuss-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 12>;
 
 			trips {
@@ -3508,7 +3383,6 @@
 		gpuss-1-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 13>;
 
 			trips {
@@ -3529,7 +3403,6 @@
 		gpuss-2-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 14>;
 
 			trips {
@@ -3550,7 +3423,6 @@
 		gpu-0-0-1-thermal {
 			polling-delay-passive = <0>;
 			polling-delay = <0>;
-
 			thermal-sensors = <&tsens7 15>;
 
 			trips {
@@ -3582,131 +3454,153 @@
 			#size-cells = <2>;
 			iommus = <&apps_smmu_0 0x15a3 0x0>;
 			ranges;
+
 			status = "disabled";
 
 			i2c14: i2c@880000 {
 				reg = <0x0 0x00880000 0x0 0x4000>;
 				interrupts = <GIC_SPI 373 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi14: spi@880000 {
 				reg = <0x0 0x00880000 0x0 0x4000>;
 				interrupts = <GIC_SPI 373 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart14: serial@880000 {
 				reg = <0x0 0x00880000 0x0 0x4000>;
 				interrupts = <GIC_SPI 373 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c15: i2c@884000 {
 				reg = <0x0 0x00884000 0x0 0x4000>;
 				interrupts = <GIC_SPI 583 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi15: spi@884000 {
 				reg = <0x0 0x00884000 0x0 0x4000>;
 				interrupts = <GIC_SPI 583 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart15: serial@884000 {
 				reg = <0x0 0x00884000 0x0 0x4000>;
 				interrupts = <GIC_SPI 583 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c16: i2c@888000 {
 				reg = <0x0 0x00888000 0x0 0x4000>;
 				interrupts = <GIC_SPI 584 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi16: spi@888000 {
 				reg = <0x0 0x00888000 0x0 0x4000>;
 				interrupts = <GIC_SPI 584 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart16: serial@888000 {
 				reg = <0x0 0x00888000 0x0 0x4000>;
 				interrupts = <GIC_SPI 584 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c17: i2c@88c000 {
 				reg = <0x0 0x0088c000 0x0 0x4000>;
 				interrupts = <GIC_SPI 585 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi17: spi@88c000 {
 				reg = <0x0 0x0088c000 0x0 0x4000>;
 				interrupts = <GIC_SPI 585 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart17: serial@88c000 {
 				reg = <0x0 0x0088c000 0x0 0x4000>;
 				interrupts = <GIC_SPI 585 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c18: i2c@890000 {
 				reg = <0x0 0x00890000 0x0 0x4000>;
 				interrupts = <GIC_SPI 586 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi18: spi@890000 {
 				reg = <0x0 0x00890000 0x0 0x4000>;
 				interrupts = <GIC_SPI 586 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart18: serial@890000 {
 				reg = <0x0 0x00890000 0x0 0x4000>;
 				interrupts = <GIC_SPI 586 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c19: i2c@894000 {
 				reg = <0x0 0x00894000 0x0 0x4000>;
 				interrupts = <GIC_SPI 587 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi19: spi@894000 {
 				reg = <0x0 0x00894000 0x0 0x4000>;
 				interrupts = <GIC_SPI 587 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart19: serial@894000 {
 				reg = <0x0 0x00894000 0x0 0x4000>;
 				interrupts = <GIC_SPI 587 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c20: i2c@898000 {
 				reg = <0x0 0x00898000 0x0 0x4000>;
 				interrupts = <GIC_SPI 461 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi20: spi@898000 {
 				reg = <0x0 0x00898000 0x0 0x4000>;
 				interrupts = <GIC_SPI 461 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart20: serial@898000 {
 				reg = <0x0 0x00898000 0x0 0x4000>;
 				interrupts = <GIC_SPI 461 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 		};
@@ -3717,131 +3611,153 @@
 			#size-cells = <2>;
 			iommus = <&apps_smmu_2 0x1003 0x0>;
 			ranges;
+
 			status = "disabled";
 
 			i2c0: i2c@980000 {
 				reg = <0x0 0x00980000 0x0 0x4000>;
 				interrupts = <GIC_SPI 314 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi0: spi@980000 {
 				reg = <0x0 0x00980000 0x0 0x4000>;
 				interrupts = <GIC_SPI 314 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart0: serial@980000 {
 				reg = <0x0 0x00980000 0x0 0x4000>;
 				interrupts = <GIC_SPI 314 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c1: i2c@984000 {
 				reg = <0x0 0x00984000 0x0 0x4000>;
 				interrupts = <GIC_SPI 513 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi1: spi@984000 {
 				reg = <0x0 0x00984000 0x0 0x4000>;
 				interrupts = <GIC_SPI 513 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart1: serial@984000 {
 				reg = <0x0 0x00984000 0x0 0x4000>;
 				interrupts = <GIC_SPI 513 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c2: i2c@988000 {
 				reg = <0x0 0x00988000 0x0 0x4000>;
 				interrupts = <GIC_SPI 514 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi2: spi@988000 {
 				reg = <0x0 0x00988000 0x0 0x4000>;
 				interrupts = <GIC_SPI 514 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart2: serial@988000 {
 				reg = <0x0 0x00988000 0x0 0x4000>;
 				interrupts = <GIC_SPI 514 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c3: i2c@98c000 {
 				reg = <0x0 0x0098c000 0x0 0x4000>;
 				interrupts = <GIC_SPI 515 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi3: spi@98c000 {
 				reg = <0x0 0x0098c000 0x0 0x4000>;
 				interrupts = <GIC_SPI 515 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart3: serial@98c000 {
 				reg = <0x0 0x0098c000 0x0 0x4000>;
 				interrupts = <GIC_SPI 515 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c4: i2c@990000 {
 				reg = <0x0 0x00990000 0x0 0x4000>;
 				interrupts = <GIC_SPI 516 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi4: spi@990000 {
 				reg = <0x0 0x00990000 0x0 0x4000>;
 				interrupts = <GIC_SPI 516 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart4: serial@990000 {
 				reg = <0x0 0x00990000 0x0 0x4000>;
 				interrupts = <GIC_SPI 516 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c5: i2c@994000 {
 				reg = <0x0 0x00994000 0x0 0x4000>;
 				interrupts = <GIC_SPI 517 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi5: spi@994000 {
 				reg = <0x0 0x00994000 0x0 0x4000>;
 				interrupts = <GIC_SPI 517 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart5: serial@994000 {
 				reg = <0x0 0x00994000 0x0 0x4000>;
 				interrupts = <GIC_SPI 517 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c6: i2c@998000 {
 				reg = <0x0 0x00998000 0x0 0x4000>;
 				interrupts = <GIC_SPI 518 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi6: spi@998000 {
 				reg = <0x0 0x00998000 0x0 0x4000>;
 				interrupts = <GIC_SPI 518 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart6: serial@998000 {
 				reg = <0x0 0x00998000 0x0 0x4000>;
 				interrupts = <GIC_SPI 518 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 		};
@@ -3852,119 +3768,139 @@
 			#size-cells = <2>;
 			iommus = <&apps_smmu_2 0x1043 0x0>;
 			ranges;
+
 			status = "disabled";
 
 			i2c7: i2c@a80000 {
 				reg = <0x0 0x00a80000 0x0 0x4000>;
 				interrupts = <GIC_SPI 353 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi7: spi@a80000 {
 				reg = <0x0 0x00a80000 0x0 0x4000>;
 				interrupts = <GIC_SPI 353 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart7: serial@a80000 {
 				reg = <0x0 0x00a80000 0x0 0x4000>;
 				interrupts = <GIC_SPI 353 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c8: i2c@a84000 {
 				reg = <0x0 0x00a84000 0x0 0x4000>;
 				interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi8: spi@a84000 {
 				reg = <0x0 0x00a84000 0x0 0x4000>;
 				interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart8: serial@a84000 {
 				reg = <0x0 0x00a84000 0x0 0x4000>;
 				interrupts = <GIC_SPI 354 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c9: i2c@a88000 {
 				reg = <0x0 0x00a88000 0x0 0x4000>;
 				interrupts = <GIC_SPI 355 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart9: serial@a88000 {
 				reg = <0x0 0x00a88000 0x0 0x4000>;
 				interrupts = <GIC_SPI 355 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c10: i2c@a8c000 {
 				reg = <0x0 0x00a8c000 0x0 0x4000>;
 				interrupts = <GIC_SPI 356 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart10: serial@a8c000 {
 				reg = <0x0 0x00a8c000 0x0 0x4000>;
 				interrupts = <GIC_SPI 356 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c11: i2c@a90000 {
 				reg = <0x0 0x00a90000 0x0 0x4000>;
 				interrupts = <GIC_SPI 357 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi11: spi@a90000 {
 				reg = <0x0 0x00a90000 0x0 0x4000>;
 				interrupts = <GIC_SPI 357 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart11: serial@a90000 {
 				reg = <0x0 0x00a90000 0x0 0x4000>;
 				interrupts = <GIC_SPI 357 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c12: i2c@a94000 {
 				reg = <0x0 0x00a94000 0x0 0x4000>;
 				interrupts = <GIC_SPI 358 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi12: spi@a94000 {
 				reg = <0x0 0x00a94000 0x0 0x4000>;
 				interrupts = <GIC_SPI 358 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart12: serial@a94000 {
 				reg = <0x0 0x00a94000 0x0 0x4000>;
 				interrupts = <GIC_SPI 358 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			i2c13: i2c@a98000 {
 				reg = <0x0 0x00a98000 0x0 0x4000>;
 				interrupts = <GIC_SPI 363 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi13: spi@a98000 {
 				reg = <0x0 0x00a98000 0x0 0x4000>;
 				interrupts = <GIC_SPI 363 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart13: serial@a98000 {
 				reg = <0x0 0x00a98000 0x0 0x4000>;
 				interrupts = <GIC_SPI 363 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 		};
@@ -3975,23 +3911,27 @@
 			#size-cells = <2>;
 			iommus = <&apps_smmu_2 0x1063 0x0>;
 			ranges;
+
 			status = "disabled";
 
 			i2c21: i2c@c80000 {
 				reg = <0x0 0x00c80000 0x0 0x4000>;
 				interrupts = <GIC_SPI 312 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			spi21: spi@c80000 {
 				reg = <0x0 0x00c80000 0x0 0x4000>;
 				interrupts = <GIC_SPI 312 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 
 			uart21: serial@c80000 {
 				reg = <0x0 0x00c80000 0x0 0x4000>;
 				interrupts = <GIC_SPI 312 IRQ_TYPE_LEVEL_HIGH>;
+
 				status = "disabled";
 			};
 		};
@@ -4101,6 +4041,7 @@
 					  "gerror";
 			dma-coherent;
 			#iommu-cells = <1>;
+
 			status = "disabled";
 		};
 
@@ -4119,8 +4060,8 @@
 		tsens0: thermal-sensor@c22c000 {
 			compatible = "qcom,nord-tsens",
 				     "qcom,tsens-v2";
-			reg = <0x0 0x0c22c000 0x0 0x1ff>,
-			      <0x0 0x0c222000 0x0 0x8>;
+			reg = <0x0 0x0c22c000 0x0 0x1000>,
+			      <0x0 0x0c222000 0x0 0x1000>;
 			interrupts = <GIC_SPI 771 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 484 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "uplow",
@@ -4132,8 +4073,8 @@
 		tsens1: thermal-sensor@c22d000 {
 			compatible = "qcom,nord-tsens",
 				     "qcom,tsens-v2";
-			reg = <0x0 0x0c22d000 0x0 0x1ff>,
-			      <0x0 0x0c223000 0x0 0x8>;
+			reg = <0x0 0x0c22d000 0x0 0x1000>,
+			      <0x0 0x0c223000 0x0 0x1000>;
 			interrupts = <GIC_SPI 772 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 485 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "uplow",
@@ -4145,8 +4086,8 @@
 		tsens2: thermal-sensor@c22e000 {
 			compatible = "qcom,nord-tsens",
 				     "qcom,tsens-v2";
-			reg = <0x0 0x0c22e000 0x0 0x1ff>,
-			      <0x0 0x0c224000 0x0 0x8>;
+			reg = <0x0 0x0c22e000 0x0 0x1000>,
+			      <0x0 0x0c224000 0x0 0x1000>;
 			interrupts = <GIC_SPI 773 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 486 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "uplow",
@@ -4158,8 +4099,8 @@
 		tsens3: thermal-sensor@c22f000 {
 			compatible = "qcom,nord-tsens",
 				     "qcom,tsens-v2";
-			reg = <0x0 0x0c22f000 0x0 0x1ff>,
-			      <0x0 0x0c225000 0x0 0x8>;
+			reg = <0x0 0x0c22f000 0x0 0x1000>,
+			      <0x0 0x0c225000 0x0 0x1000>;
 			interrupts = <GIC_SPI 774 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 487 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "uplow",
@@ -4171,8 +4112,8 @@
 		tsens4: thermal-sensor@c230000 {
 			compatible = "qcom,nord-tsens",
 				     "qcom,tsens-v2";
-			reg = <0x0 0x0c230000 0x0 0x1ff>,
-			      <0x0 0x0c226000 0x0 0x8>;
+			reg = <0x0 0x0c230000 0x0 0x1000>,
+			      <0x0 0x0c226000 0x0 0x1000>;
 			interrupts = <GIC_SPI 775 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 399 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "uplow",
@@ -4184,8 +4125,8 @@
 		tsens5: thermal-sensor@c231000 {
 			compatible = "qcom,nord-tsens",
 				     "qcom,tsens-v2";
-			reg = <0x0 0x0c231000 0x0 0x1ff>,
-			      <0x0 0x0c227000 0x0 0x8>;
+			reg = <0x0 0x0c231000 0x0 0x1000>,
+			      <0x0 0x0c227000 0x0 0x1000>;
 			interrupts = <GIC_SPI 776 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 400 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "uplow",
@@ -4197,8 +4138,8 @@
 		tsens6: thermal-sensor@c232000 {
 			compatible = "qcom,nord-tsens",
 				     "qcom,tsens-v2";
-			reg = <0x0 0x0c232000 0x0 0x1ff>,
-			      <0x0 0x0c228000 0x0 0x8>;
+			reg = <0x0 0x0c232000 0x0 0x1000>,
+			      <0x0 0x0c228000 0x0 0x1000>;
 			interrupts = <GIC_SPI 777 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 401 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "uplow",
@@ -4210,8 +4151,8 @@
 		tsens7: thermal-sensor@c233000 {
 			compatible = "qcom,nord-tsens",
 				     "qcom,tsens-v2";
-			reg = <0x0 0x0c233000 0x0 0x1ff>,
-			      <0x0 0x0c229000 0x0 0x8>;
+			reg = <0x0 0x0c233000 0x0 0x1000>,
+			      <0x0 0x0c229000 0x0 0x1000>;
 			interrupts = <GIC_SPI 778 IRQ_TYPE_LEVEL_HIGH>,
 				     <GIC_SPI 402 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "uplow",
@@ -4611,6 +4552,7 @@
 				reg = <0x17813000 0x1000>;
 				interrupts = <GIC_SPI 39 IRQ_TYPE_LEVEL_HIGH>;
 				frame-number = <1>;
+
 				status = "disabled";
 			};
 
@@ -4618,6 +4560,7 @@
 				reg = <0x17815000 0x1000>;
 				interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH>;
 				frame-number = <2>;
+
 				status = "disabled";
 			};
 
@@ -4625,6 +4568,7 @@
 				reg = <0x17817000 0x1000>;
 				interrupts = <GIC_SPI 41 IRQ_TYPE_LEVEL_HIGH>;
 				frame-number = <3>;
+
 				status = "disabled";
 			};
 
@@ -4632,6 +4576,7 @@
 				reg = <0x17819000 0x1000>;
 				interrupts = <GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH>;
 				frame-number = <4>;
+
 				status = "disabled";
 			};
 
@@ -4639,6 +4584,7 @@
 				reg = <0x1781b000 0x1000>;
 				interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH>;
 				frame-number = <5>;
+
 				status = "disabled";
 			};
 
@@ -4646,6 +4592,7 @@
 				reg = <0x1781d000 0x1000>;
 				interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
 				frame-number = <6>;
+
 				status = "disabled";
 			};
 		};
