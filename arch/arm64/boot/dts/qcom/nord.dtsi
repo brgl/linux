@@ -505,17 +505,17 @@
 		};
 
 		sail_mailbox_mem: sail-mailbox-region@82008000 {
-			reg = <0x0 0x82008000 0x0 0x1F8000>;
+			reg = <0x0 0x82008000 0x0 0x1f8000>;
 			no-map;
 		};
 
 		sail_ota_mem: sail-ota-region@82200000 {
-			reg = <0x0 0x82200000 0x0 0x5FF000>;
+			reg = <0x0 0x82200000 0x0 0x5ff000>;
 			no-map;
 		};
 
-		sail_vdt_mem: sail-vdt-region@827FF000 {
-			reg = <0x0 0x827FF000 0x0 0x1000>;
+		sail_vdt_mem: sail-vdt-region@827ff000 {
+			reg = <0x0 0x827ff000 0x0 0x1000>;
 			no-map;
 		};
 
