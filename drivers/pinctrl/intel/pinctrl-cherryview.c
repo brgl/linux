@@ -1591,6 +1591,8 @@ static int chv_pinctrl_probe(struct platform_device *pdev)
 	unsigned int i;
 	int ret, irq;
 
+	return 0;
+
 	soc_data = intel_pinctrl_get_soc_data(pdev);
 	if (IS_ERR(soc_data))
 		return PTR_ERR(soc_data);
