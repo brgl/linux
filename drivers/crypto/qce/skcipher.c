@@ -236,9 +236,37 @@ static int qce_des_setkey(struct crypto_skcipher *ablk, const u8 *key,
 	if (err)
 		return err;
 
+	/* The fallback handles fragmented payloads, so keep its key in sync. */
+	err = crypto_skcipher_setkey(ctx->fallback, key, keylen);
+	if (err)
+		return err;
+
 	ctx->enc_keylen = keylen;
 	memcpy(ctx->enc_key, key, keylen);
 	return 0;
+}
+
+/*
+ * The CE consumes the payload in block-sized chunks, so an interior
+ * scatterlist segment boundary that falls in the middle of a block makes the
+ * engine stall waiting for the rest of that block. Every segment except the
+ * last one therefore has to be block aligned; the final segment may be short
+ * because the total length is validated separately. Return true if any such
+ * boundary would stall the engine.
+ */
+static bool qce_skcipher_seg_unaligned(struct scatterlist *sg,
+				       unsigned int len, unsigned int blocksize)
+{
+	while (sg && len) {
+		unsigned int seglen = min(sg->length, len);
+
+		len -= seglen;
+		if (len && !IS_ALIGNED(seglen, blocksize))
+			return true;
+		sg = sg_next(sg);
+	}
+
+	return false;
 }
 
 static int qce_skcipher_crypt(struct skcipher_request *req, int encrypt)
@@ -248,6 +276,7 @@ static int qce_skcipher_crypt(struct skcipher_request *req, int encrypt)
 	struct qce_cipher_reqctx *rctx = skcipher_request_ctx(req);
 	struct qce_alg_template *tmpl = to_cipher_tmpl(tfm);
 	unsigned int blocksize = crypto_skcipher_blocksize(tfm);
+	unsigned int chunksize = crypto_skcipher_chunksize(tfm);
 	int keylen;
 	int ret;
 
@@ -291,20 +320,33 @@ static int qce_skcipher_crypt(struct skcipher_request *req, int encrypt)
 	    (IS_XTS(rctx->flags) && ((req->cryptlen <= aes_sw_max_len) ||
 	    (req->cryptlen > QCE_SECTOR_SIZE &&
 	    req->cryptlen % QCE_SECTOR_SIZE))) ||
-	    (IS_XTS(rctx->flags) && ctx->use_fallback))) {
-		skcipher_request_set_tfm(&rctx->fallback_req, ctx->fallback);
-		skcipher_request_set_callback(&rctx->fallback_req,
-					      req->base.flags,
-					      req->base.complete,
-					      req->base.data);
-		skcipher_request_set_crypt(&rctx->fallback_req, req->src,
-					   req->dst, req->cryptlen, req->iv);
-		ret = encrypt ? crypto_skcipher_encrypt(&rctx->fallback_req) :
-				crypto_skcipher_decrypt(&rctx->fallback_req);
-		return ret;
-	}
+	    (IS_XTS(rctx->flags) && ctx->use_fallback)))
+		goto fallback;
+
+	/*
+	 * Fragmented payload where an interior scatterlist segment boundary
+	 * falls in the middle of a block makes the CE stall on the partial
+	 * block mid-stream. This is not specific to AES, so check it for every
+	 * cipher using its own chunk size (the unit the engine consumes: 16 for
+	 * AES modes including CTR whose block size is 1, 8 for DES).
+	 */
+	if (qce_skcipher_seg_unaligned(req->src, req->cryptlen, chunksize) ||
+	    qce_skcipher_seg_unaligned(req->dst, req->cryptlen, chunksize))
+		goto fallback;
 
 	return tmpl->qce->async_req_enqueue(tmpl->qce, &req->base);
+
+fallback:
+	skcipher_request_set_tfm(&rctx->fallback_req, ctx->fallback);
+	skcipher_request_set_callback(&rctx->fallback_req,
+				      req->base.flags,
+				      req->base.complete,
+				      req->base.data);
+	skcipher_request_set_crypt(&rctx->fallback_req, req->src,
+				   req->dst, req->cryptlen, req->iv);
+	ret = encrypt ? crypto_skcipher_encrypt(&rctx->fallback_req) :
+			crypto_skcipher_decrypt(&rctx->fallback_req);
+	return ret;
 }
 
 static int qce_skcipher_encrypt(struct skcipher_request *req)
@@ -315,14 +357,6 @@ static int qce_skcipher_encrypt(struct skcipher_request *req)
 static int qce_skcipher_decrypt(struct skcipher_request *req)
 {
 	return qce_skcipher_crypt(req, 0);
-}
-
-static int qce_skcipher_init(struct crypto_skcipher *tfm)
-{
-	/* take the size without the fallback skcipher_request at the end */
-	crypto_skcipher_set_reqsize(tfm, offsetof(struct qce_cipher_reqctx,
-						  fallback_req));
-	return 0;
 }
 
 static int qce_skcipher_init_fallback(struct crypto_skcipher *tfm)
@@ -431,13 +465,14 @@ static int qce_skcipher_register_one(const struct qce_skcipher_def *def,
 	alg->base.cra_alignmask		= 0;
 	alg->base.cra_module		= THIS_MODULE;
 
-	if (IS_AES(def->flags)) {
-		alg->base.cra_flags    |= CRYPTO_ALG_NEED_FALLBACK;
-		alg->init		= qce_skcipher_init_fallback;
-		alg->exit		= qce_skcipher_exit;
-	} else {
-		alg->init		= qce_skcipher_init;
-	}
+	/*
+	 * Every qce skcipher can route a request to the fallback (e.g. a
+	 * fragmented payload that would stall the engine mid-block), so a
+	 * fallback cipher is always required.
+	 */
+	alg->base.cra_flags    |= CRYPTO_ALG_NEED_FALLBACK;
+	alg->init		= qce_skcipher_init_fallback;
+	alg->exit		= qce_skcipher_exit;
 
 	INIT_LIST_HEAD(&tmpl->entry);
 	tmpl->crypto_alg_type = CRYPTO_ALG_TYPE_SKCIPHER;
