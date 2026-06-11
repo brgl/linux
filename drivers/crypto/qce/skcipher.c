@@ -57,7 +57,20 @@ static void qce_skcipher_done(void *data)
 	if (error < 0)
 		dev_dbg(qce->dev, "skcipher operation error (%x)\n", status);
 
-	memcpy(rctx->iv, result_buf->encr_cntr_iv, rctx->ivsize);
+	if (IS_CTR(rctx->flags)) {
+		/*
+		 * The crypto engine's counter-IV readback is unreliable, so
+		 * derive the output IV from the input IV (still held in
+		 * rctx->iv, untouched by the DMA) by advancing the counter by
+		 * the number of processed blocks.
+		 */
+		unsigned int blocks = DIV_ROUND_UP(rctx->cryptlen, AES_BLOCK_SIZE);
+
+		while (blocks--)
+			crypto_inc(rctx->iv, rctx->ivsize);
+	} else {
+		memcpy(rctx->iv, result_buf->encr_cntr_iv, rctx->ivsize);
+	}
 	qce->async_req_done(tmpl->qce, error);
 }
 
