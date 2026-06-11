@@ -524,6 +524,35 @@ static int qce_aead_crypt(struct aead_request *req, int encrypt)
 	if (IS_CCM(rctx->flags) && !IS_ALIGNED(rctx->cryptlen, AES_BLOCK_SIZE))
 		ctx->need_fallback = true;
 
+	/*
+	 * The CE reliably processes CCM only when the message payload is a
+	 * single contiguous buffer. The associated data is linearized into a
+	 * bounce buffer before being handed to the engine, but a fragmented
+	 * payload makes the engine stall waiting for input, so route those
+	 * requests to the fallback. The payload starts right after the
+	 * associated data in both the source and the destination.
+	 *
+	 * The authentication tag is contiguous with the payload and is fed to
+	 * the engine in the same stream: it trails the ciphertext in the source
+	 * on decrypt and in the destination on encrypt. Include it in the span
+	 * that is checked for fragmentation, otherwise a segment boundary
+	 * between the payload and the tag is missed and the engine stalls.
+	 */
+	if (IS_CCM(rctx->flags) && rctx->cryptlen) {
+		unsigned int authsize = ctx->authsize;
+		struct scatterlist __sg[2], *msg_sg;
+
+		msg_sg = scatterwalk_ffwd(__sg, req->src, req->assoclen);
+		if (sg_nents_for_len(msg_sg, rctx->cryptlen +
+				     (encrypt ? 0 : authsize)) > 1)
+			ctx->need_fallback = true;
+
+		msg_sg = scatterwalk_ffwd(__sg, req->dst, req->assoclen);
+		if (sg_nents_for_len(msg_sg, rctx->cryptlen +
+				     (encrypt ? authsize : 0)) > 1)
+			ctx->need_fallback = true;
+	}
+
 	/* If fallback is needed, schedule and exit */
 	if (ctx->need_fallback) {
 		/* Reset need_fallback in case the same ctx is used for another transaction */
