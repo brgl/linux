@@ -12,6 +12,10 @@
 	#address-cells = <2>;
 	#size-cells = <2>;
 
+	aliases {
+		scmichannels = &scmi_sram;
+	};
+
 	clocks {
 
 		bi_tcxo_div2: bi-tcxo-div2-clk {
@@ -2546,388 +2550,334 @@
 			no-map;
 		};
 
-		shmem0: scmi-mem@d0000000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0000000 0x0 0x1000>;
+		scmi_sram: sram@d0000000 {
+			compatible = "mmio-sram";
+			reg = <0x0 0xd0000000 0x0 0x40000>;
 			no-map;
-		};
 
-		shmem1: scmi-mem@d0001000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0001000 0x0 0x1000>;
-			no-map;
-		};
+			#address-cells = <1>;
+			#size-cells = <1>;
+			ranges = <0xd0000000 0x0 0xd0000000 0x40000>;
 
-		shmem2: scmi-mem@d0002000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0002000 0x0 0x1000>;
-			no-map;
-		};
+			shmem0: scmi-shmem@d0000000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0000000 0x1000>;
+			};
 
-		shmem3: scmi-mem@d0003000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0003000 0x0 0x1000>;
-			no-map;
-		};
+			shmem1: scmi-shmem@d0001000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0001000 0x1000>;
+			};
 
-		shmem4: scmi-mem@d0004000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0004000 0x0 0x1000>;
-			no-map;
-		};
+			shmem2: scmi-shmem@d0002000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0002000 0x1000>;
+			};
 
-		shmem5: scmi-mem@d0005000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0005000 0x0 0x1000>;
-			no-map;
-		};
+			shmem3: scmi-shmem@d0003000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0003000 0x1000>;
+			};
 
-		shmem6: scmi-mem@d0006000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0006000 0x0 0x1000>;
-			no-map;
-		};
+			shmem4: scmi-shmem@d0004000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0004000 0x1000>;
+			};
 
-		shmem7: scmi-mem@d0007000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0007000 0x0 0x1000>;
-			no-map;
-		};
+			shmem5: scmi-shmem@d0005000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0005000 0x1000>;
+			};
 
-		shmem8: scmi-mem@d0008000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0008000 0x0 0x1000>;
-			no-map;
-		};
+			shmem6: scmi-shmem@d0006000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0006000 0x1000>;
+			};
 
-		shmem9: scmi-mem@d0009000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0009000 0x0 0x1000>;
-			no-map;
-		};
+			shmem7: scmi-shmem@d0007000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0007000 0x1000>;
+			};
 
-		shmem10: scmi-mem@d000a000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd000a000 0x0 0x1000>;
-			no-map;
-		};
+			shmem8: scmi-shmem@d0008000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0008000 0x1000>;
+			};
 
-		shmem11: scmi-mem@d000b000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd000b000 0x0 0x1000>;
-			no-map;
-		};
+			shmem9: scmi-shmem@d0009000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0009000 0x1000>;
+			};
 
-		shmem12: scmi-mem@d000c000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd000c000 0x0 0x1000>;
-			no-map;
-		};
+			shmem10: scmi-shmem@d000a000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd000a000 0x1000>;
+			};
 
-		shmem13: scmi-mem@d000d000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd000d000 0x0 0x1000>;
-			no-map;
-		};
+			shmem11: scmi-shmem@d000b000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd000b000 0x1000>;
+			};
 
-		shmem14: scmi-mem@d000e000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd000e000 0x0 0x1000>;
-			no-map;
-		};
+			shmem12: scmi-shmem@d000c000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd000c000 0x1000>;
+			};
 
-		shmem15: scmi-mem@d000f000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd000f000 0x0 0x1000>;
-			no-map;
-		};
+			shmem13: scmi-shmem@d000d000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd000d000 0x1000>;
+			};
 
-		shmem16: scmi-mem@d0010000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0010000 0x0 0x1000>;
-			no-map;
-		};
+			shmem14: scmi-shmem@d000e000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd000e000 0x1000>;
+			};
 
-		shmem17: scmi-mem@d0011000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0011000 0x0 0x1000>;
-			no-map;
-		};
+			shmem15: scmi-shmem@d000f000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd000f000 0x1000>;
+			};
 
-		shmem18: scmi-mem@d0012000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0012000 0x0 0x1000>;
-			no-map;
-		};
+			shmem16: scmi-shmem@d0010000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0010000 0x1000>;
+			};
 
-		shmem19: scmi-mem@d0013000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0013000 0x0 0x1000>;
-			no-map;
-		};
+			shmem17: scmi-shmem@d0011000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0011000 0x1000>;
+			};
 
-		shmem20: scmi-mem@d0014000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0014000 0x0 0x1000>;
-			no-map;
-		};
+			shmem18: scmi-shmem@d0012000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0012000 0x1000>;
+			};
 
-		shmem21: scmi-mem@d0015000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0015000 0x0 0x1000>;
-			no-map;
-		};
+			shmem19: scmi-shmem@d0013000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0013000 0x1000>;
+			};
 
-		shmem22: scmi-mem@d0016000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0016000 0x0 0x1000>;
-			no-map;
-		};
+			shmem20: scmi-shmem@d0014000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0014000 0x1000>;
+			};
 
-		shmem23: scmi-mem@d0017000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0017000 0x0 0x1000>;
-			no-map;
-		};
+			shmem21: scmi-shmem@d0015000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0015000 0x1000>;
+			};
 
-		shmem24: scmi-mem@d0018000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0018000 0x0 0x1000>;
-			no-map;
-		};
+			shmem22: scmi-shmem@d0016000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0016000 0x1000>;
+			};
 
-		shmem25: scmi-mem@d0019000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0019000 0x0 0x1000>;
-			no-map;
-		};
+			shmem23: scmi-shmem@d0017000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0017000 0x1000>;
+			};
 
-		shmem26: scmi-mem@d001a000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd001a000 0x0 0x1000>;
-			no-map;
-		};
+			shmem24: scmi-shmem@d0018000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0018000 0x1000>;
+			};
 
-		shmem27: scmi-mem@d001b000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd001b000 0x0 0x1000>;
-			no-map;
-		};
+			shmem25: scmi-shmem@d0019000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0019000 0x1000>;
+			};
 
-		shmem28: scmi-mem@d001c000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd001c000 0x0 0x1000>;
-			no-map;
-		};
+			shmem26: scmi-shmem@d001a000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd001a000 0x1000>;
+			};
 
-		shmem29: scmi-mem@d001d000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd001d000 0x0 0x1000>;
-			no-map;
-		};
+			shmem27: scmi-shmem@d001b000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd001b000 0x1000>;
+			};
 
-		shmem30: scmi-mem@d001e000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd001e000 0x0 0x1000>;
-			no-map;
-		};
+			shmem28: scmi-shmem@d001c000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd001c000 0x1000>;
+			};
 
-		shmem31: scmi-mem@d001f000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd001f000 0x0 0x1000>;
-			no-map;
-		};
+			shmem29: scmi-shmem@d001d000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd001d000 0x1000>;
+			};
 
-		shmem32: scmi-mem@d0020000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0020000 0x0 0x1000>;
-			no-map;
-		};
+			shmem30: scmi-shmem@d001e000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd001e000 0x1000>;
+			};
 
-		shmem33: scmi-mem@d0021000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0021000 0x0 0x1000>;
-			no-map;
-		};
+			shmem31: scmi-shmem@d001f000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd001f000 0x1000>;
+			};
 
-		shmem34: scmi-mem@d0022000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0022000 0x0 0x1000>;
-			no-map;
-		};
+			shmem32: scmi-shmem@d0020000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0020000 0x1000>;
+			};
 
-		shmem35: scmi-mem@d0023000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0023000 0x0 0x1000>;
-			no-map;
-		};
+			shmem33: scmi-shmem@d0021000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0021000 0x1000>;
+			};
 
-		shmem36: scmi-mem@d0024000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0024000 0x0 0x1000>;
-			no-map;
-		};
+			shmem34: scmi-shmem@d0022000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0022000 0x1000>;
+			};
 
-		shmem37: scmi-mem@d0025000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0025000 0x0 0x1000>;
-			no-map;
-		};
+			shmem35: scmi-shmem@d0023000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0023000 0x1000>;
+			};
 
-		shmem38: scmi-mem@d0026000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0026000 0x0 0x1000>;
-			no-map;
-		};
+			shmem36: scmi-shmem@d0024000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0024000 0x1000>;
+			};
 
-		shmem39: scmi-mem@d0027000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0027000 0x0 0x1000>;
-			no-map;
-		};
+			shmem37: scmi-shmem@d0025000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0025000 0x1000>;
+			};
 
-		shmem40: scmi-mem@d0028000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0028000 0x0 0x1000>;
-			no-map;
-		};
+			shmem38: scmi-shmem@d0026000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0026000 0x1000>;
+			};
 
-		shmem41: scmi-mem@d0029000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0029000 0x0 0x1000>;
-			no-map;
-		};
+			shmem39: scmi-shmem@d0027000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0027000 0x1000>;
+			};
 
-		shmem42: scmi-mem@d002a000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd002a000 0x0 0x1000>;
-			no-map;
-		};
+			shmem40: scmi-shmem@d0028000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0028000 0x1000>;
+			};
 
-		shmem43: scmi-mem@d002b000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd002b000 0x0 0x1000>;
-			no-map;
-		};
+			shmem41: scmi-shmem@d0029000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0029000 0x1000>;
+			};
 
-		shmem44: scmi-mem@d002c000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd002c000 0x0 0x1000>;
-			no-map;
-		};
+			shmem42: scmi-shmem@d002a000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd002a000 0x1000>;
+			};
 
-		shmem45: scmi-mem@d002d000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd002d000 0x0 0x1000>;
-			no-map;
-		};
+			shmem43: scmi-shmem@d002b000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd002b000 0x1000>;
+			};
 
-		shmem46: scmi-mem@d002e000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd002e000 0x0 0x1000>;
-			no-map;
-		};
+			shmem44: scmi-shmem@d002c000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd002c000 0x1000>;
+			};
 
-		shmem47: scmi-mem@d002f000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd002f000 0x0 0x1000>;
-			no-map;
-		};
+			shmem45: scmi-shmem@d002d000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd002d000 0x1000>;
+			};
 
-		shmem48: scmi-mem@d0030000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0030000 0x0 0x1000>;
-			no-map;
-		};
+			shmem46: scmi-shmem@d002e000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd002e000 0x1000>;
+			};
 
-		shmem49: scmi-mem@d0031000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0031000 0x0 0x1000>;
-			no-map;
-		};
+			shmem47: scmi-shmem@d002f000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd002f000 0x1000>;
+			};
 
-		shmem50: scmi-mem@d0032000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0032000 0x0 0x1000>;
-			no-map;
-		};
+			shmem48: scmi-shmem@d0030000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0030000 0x1000>;
+			};
 
-		shmem51: scmi-mem@d0033000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0033000 0x0 0x1000>;
-			no-map;
-		};
+			shmem49: scmi-shmem@d0031000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0031000 0x1000>;
+			};
 
-		shmem52: scmi-mem@d0034000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0034000 0x0 0x1000>;
-			no-map;
-		};
+			shmem50: scmi-shmem@d0032000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0032000 0x1000>;
+			};
 
-		shmem53: scmi-mem@d0035000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0035000 0x0 0x1000>;
-			no-map;
-		};
+			shmem51: scmi-shmem@d0033000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0033000 0x1000>;
+			};
 
-		shmem54: scmi-mem@d0036000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0036000 0x0 0x1000>;
-			no-map;
-		};
+			shmem52: scmi-shmem@d0034000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0034000 0x1000>;
+			};
 
-		shmem55: scmi-mem@d0037000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0037000 0x0 0x1000>;
-			no-map;
-		};
+			shmem53: scmi-shmem@d0035000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0035000 0x1000>;
+			};
 
-		shmem56: scmi-mem@d0038000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0038000 0x0 0x1000>;
-			no-map;
-		};
+			shmem54: scmi-shmem@d0036000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0036000 0x1000>;
+			};
 
-		shmem57: scmi-mem@d0039000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd0039000 0x0 0x1000>;
-			no-map;
-		};
+			shmem55: scmi-shmem@d0037000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0037000 0x1000>;
+			};
 
-		shmem58: scmi-mem@d003a000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd003a000 0x0 0x1000>;
-			no-map;
-		};
+			shmem56: scmi-shmem@d0038000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0038000 0x1000>;
+			};
 
-		shmem59: scmi-mem@d003b000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd003b000 0x0 0x1000>;
-			no-map;
-		};
+			shmem57: scmi-shmem@d0039000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd0039000 0x1000>;
+			};
 
-		shmem60: scmi-mem@d003c000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd003c000 0x0 0x1000>;
-			no-map;
-		};
+			shmem58: scmi-shmem@d003a000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd003a000 0x1000>;
+			};
 
-		shmem61: scmi-mem@d003d000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd003d000 0x0 0x1000>;
-			no-map;
-		};
+			shmem59: scmi-shmem@d003b000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd003b000 0x1000>;
+			};
 
-		shmem62: scmi-mem@d003e000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd003e000 0x0 0x1000>;
-			no-map;
-		};
+			shmem60: scmi-shmem@d003c000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd003c000 0x1000>;
+			};
 
-		shmem63: scmi-mem@d003f000 {
-			compatible = "arm,scmi-shmem";
-			reg = <0x0 0xd003f000 0x0 0x1000>;
-			no-map;
+			shmem61: scmi-shmem@d003d000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd003d000 0x1000>;
+			};
+
+			shmem62: scmi-shmem@d003e000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd003e000 0x1000>;
+			};
+
+			shmem63: scmi-shmem@d003f000 {
+				compatible = "arm,scmi-shmem";
+				reg = <0xd003f000 0x1000>;
+			};
 		};
 
 		firmware_logs_mem: firmware-logs@d0040000 {
