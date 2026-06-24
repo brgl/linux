@@ -1426,6 +1426,7 @@ static const struct qcom_cc_desc disp_cc_1_sa8775p_desc = {
 };
 
 static const struct of_device_id disp_cc_1_sa8775p_match_table[] = {
+	{ .compatible = "qcom,nord-dispcc1" },
 	{ .compatible = "qcom,sa8775p-dispcc1" },
 	{ }
 };
