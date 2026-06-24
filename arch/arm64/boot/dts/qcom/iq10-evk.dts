@@ -518,6 +518,56 @@
 	status = "okay";
 };
 
+/*
+ * TODO: PHY supply rails are provisional, chosen to match the eUSB2 / QMP
+ * USB3-DP binding requirements from the EVK PMIC rails. Confirm against the
+ * board schematics.
+ */
+&usb_0 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+&usb_0_hsphy {
+	vdd-supply = <&vreg_l1e_0p9>;
+	vdda12-supply = <&vreg_l2i_1p2>;
+	status = "okay";
+};
+
+&usb_0_qmpphy {
+	vdda-phy-supply = <&vreg_l1h_0p9>;
+	vdda-pll-supply = <&vreg_l2h_1p2>;
+	status = "okay";
+};
+
+&usb_1 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+&usb_1_hsphy {
+	vdd-supply = <&vreg_l1e_0p9>;
+	vdda12-supply = <&vreg_l2i_1p2>;
+	status = "okay";
+};
+
+&usb_1_qmpphy {
+	vdda-phy-supply = <&vreg_l1h_0p9>;
+	vdda-pll-supply = <&vreg_l2h_1p2>;
+	status = "okay";
+};
+
+&usb_2 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+&usb_2_hsphy {
+	vdd-supply = <&vreg_l1e_0p9>;
+	vdda12-supply = <&vreg_l2i_1p2>;
+	status = "okay";
+};
+
 &ufs_mem_hc {
 	reset-gpios = <&tlmm 181 GPIO_ACTIVE_LOW>;
 
