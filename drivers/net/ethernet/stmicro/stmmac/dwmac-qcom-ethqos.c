@@ -101,6 +101,7 @@ struct qcom_ethqos {
 	struct platform_device *pdev;
 	void __iomem *rgmii_base;
 	struct clk *link_clk;
+	struct clk *apb_clk;
 	struct phy *serdes_phy;
 	phy_interface_t phy_mode;
 
@@ -201,6 +202,14 @@ qcom_ethqos_set_sgmii_loopback(struct qcom_ethqos *ethqos, bool enable)
 
 static void ethqos_set_func_clk_en(struct qcom_ethqos *ethqos)
 {
+	/* The RGMII IO macro FUNC_CLK_EN is only relevant in RGMII mode.
+	 * In SGMII mode the RX clock is sourced from the SerDes PCS, not
+	 * the RGMII macro, so the write is a no-op at best and causes a
+	 * bus fault if the RGMII IO CSR is not accessible.
+	 */
+	if (!phy_interface_mode_is_rgmii(ethqos->phy_mode))
+		return;
+
 	rgmii_setmask(ethqos, RGMII_CONFIG_FUNC_CLK_EN, RGMII_IO_MACRO_CONFIG);
 }
 
@@ -639,9 +648,16 @@ static int ethqos_clks_config(void *priv, bool enabled)
 	int ret = 0;
 
 	if (enabled) {
+		ret = clk_prepare_enable(ethqos->apb_clk);
+		if (ret) {
+			dev_err(&ethqos->pdev->dev, "apb_clk enable failed\n");
+			return ret;
+		}
+
 		ret = clk_prepare_enable(ethqos->link_clk);
 		if (ret) {
 			dev_err(&ethqos->pdev->dev, "link_clk enable failed\n");
+			clk_disable_unprepare(ethqos->apb_clk);
 			return ret;
 		}
 
@@ -654,6 +670,7 @@ static int ethqos_clks_config(void *priv, bool enabled)
 		ethqos_set_func_clk_en(ethqos);
 	} else {
 		clk_disable_unprepare(ethqos->link_clk);
+		clk_disable_unprepare(ethqos->apb_clk);
 	}
 
 	return ret;
@@ -745,9 +762,10 @@ static int qcom_ethqos_probe(struct platform_device *pdev)
 		return dev_err_probe(dev, PTR_ERR(ethqos->link_clk),
 				     "Failed to get link_clk\n");
 
-	ret = ethqos_clks_config(ethqos, true);
-	if (ret)
-		return ret;
+	ethqos->apb_clk = devm_clk_get_optional(dev, "apb_pclk");
+	if (IS_ERR(ethqos->apb_clk))
+		return dev_err_probe(dev, PTR_ERR(ethqos->apb_clk),
+				     "Failed to get apb_pclk\n");
 
 	ret = devm_add_action_or_reset(dev, ethqos_clks_disable, ethqos);
 	if (ret)
@@ -760,9 +778,6 @@ static int qcom_ethqos_probe(struct platform_device *pdev)
 
 	ethqos_set_clk_tx_rate(ethqos, NULL, plat_dat->phy_interface,
 			       SPEED_1000);
-
-	qcom_ethqos_set_sgmii_loopback(ethqos, true);
-	ethqos_set_func_clk_en(ethqos);
 
 	/* The clocks are controlled by firmware, so we don't know for certain
 	 * what clock rate is being used. Hardware documentation mentions that
@@ -798,6 +813,7 @@ static int qcom_ethqos_probe(struct platform_device *pdev)
 }
 
 static const struct of_device_id qcom_ethqos_match[] = {
+	{ .compatible = "qcom,nord-ethqos", .data = &emac_v4_0_0_data},
 	{ .compatible = "qcom,qcs404-ethqos", .data = &emac_v2_3_0_data},
 	{ .compatible = "qcom,sa8775p-ethqos", .data = &emac_v4_0_0_data},
 	{ .compatible = "qcom,sc8280xp-ethqos", .data = &emac_v3_0_0_data},
