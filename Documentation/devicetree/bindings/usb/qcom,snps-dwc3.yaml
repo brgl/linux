@@ -41,6 +41,7 @@ properties:
           - qcom,msm8994-dwc3
           - qcom,msm8996-dwc3
           - qcom,msm8998-dwc3
+          - qcom,nord-dwc3
           - qcom,qcm2290-dwc3
           - qcom,qcs404-dwc3
           - qcom,qcs615-dwc3
@@ -209,6 +210,7 @@ allOf:
               - qcom,msm8953-dwc3
               - qcom,msm8996-dwc3
               - qcom,msm8998-dwc3
+              - qcom,nord-dwc3
               - qcom,qcs8300-dwc3
               - qcom,sa8775p-dwc3
               - qcom,sc7180-dwc3
@@ -519,6 +521,7 @@ allOf:
             enum:
               - qcom,glymur-dwc3
               - qcom,milos-dwc3
+              - qcom,nord-dwc3
               - qcom,x1e80100-dwc3
     then:
       properties:
