@@ -7873,6 +7873,18 @@ static int __stmmac_dvr_probe(struct device *device,
 	/* Wait a bit for the reset to take effect */
 	udelay(10);
 
+	/*
+	 * Power up the MAC's power domain (GDSC) before accessing any hardware
+	 * registers. On platforms where firmware does not pre-power the block,
+	 * the GDSC starts collapsed, a register read or write against the
+	 * powered-down block causes a synchronous external abort.
+	 */
+	if (!pm_runtime_enabled(device))
+		pm_runtime_enable(device);
+	ret = pm_runtime_resume_and_get(device);
+	if (ret < 0)
+		goto error_hw_init;
+
 	/* Init MAC and get the capabilities */
 	ret = stmmac_hw_init(priv);
 	if (ret)
@@ -8065,6 +8077,7 @@ error_pcs_setup:
 error_mdio_register:
 	stmmac_napi_del(ndev);
 error_hw_init:
+	pm_runtime_put(device);
 	destroy_workqueue(priv->wq);
 error_wq_init:
 	bitmap_free(priv->af_xdp_zc_qps);
