@@ -26,6 +26,7 @@ properties:
           - const: qcom,qcs404-ethqos
       - items:
           - enum:
+              - qcom,nord-ethqos
               - qcom,qcs8300-ethqos
           - const: qcom,sa8775p-ethqos
       - enum:
