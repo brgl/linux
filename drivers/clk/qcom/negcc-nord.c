@@ -839,6 +839,13 @@ static struct clk_branch ne_gcc_ahb2phy_clk = {
 		.hw.init = &(const struct clk_init_data) {
 			.name = "ne_gcc_ahb2phy_clk",
 			.ops = &clk_branch2_ops,
+			/*
+			 * The eUSB2 PHY register space sits behind this AHB2PHY
+			 * bridge. Nothing claims this clock as a consumer, so
+			 * keep clk_disable_unused() from gating it and leaving
+			 * the PHY registers unreachable.
+			 */
+			.flags = CLK_IGNORE_UNUSED,
 		},
 	},
 };
@@ -1642,7 +1649,7 @@ static struct clk_branch ne_gcc_usb3_prim_phy_com_aux_clk = {
 
 static struct clk_branch ne_gcc_usb3_prim_phy_pipe_clk = {
 	.halt_reg = 0x2a074,
-	.halt_check = BRANCH_HALT_VOTED,
+	.halt_check = BRANCH_HALT_SKIP,
 	.hwcg_reg = 0x2a074,
 	.hwcg_bit = 1,
 	.clkr = {
@@ -1698,7 +1705,7 @@ static struct clk_branch ne_gcc_usb3_sec_phy_com_aux_clk = {
 
 static struct clk_branch ne_gcc_usb3_sec_phy_pipe_clk = {
 	.halt_reg = 0x2c074,
-	.halt_check = BRANCH_HALT_VOTED,
+	.halt_check = BRANCH_HALT_SKIP,
 	.hwcg_reg = 0x2c074,
 	.hwcg_bit = 1,
 	.clkr = {
@@ -1919,6 +1926,7 @@ static const struct qcom_reset_map ne_gcc_nord_resets[] = {
 	[NE_GCC_USB3PHY_PHY_PRIM_BCR] = { 0x2b004 },
 	[NE_GCC_USB3PHY_PHY_SEC_BCR] = { 0x2d004 },
 	[NE_GCC_QUSB2PHY_PRIM_BCR] = { 0x2e000 },
+	[NE_GCC_QUSB2PHY_SEC_BCR] = { 0x2f000 },
 };
 
 static const struct clk_rcg_dfs_data ne_gcc_nord_dfs_clocks[] = {
@@ -1971,7 +1979,23 @@ MODULE_DEVICE_TABLE(of, ne_gcc_nord_match_table);
 
 static int ne_gcc_nord_probe(struct platform_device *pdev)
 {
-	return qcom_cc_probe(pdev, &ne_gcc_nord_desc);
+	struct regmap *regmap;
+
+	regmap = qcom_cc_map(pdev, &ne_gcc_nord_desc);
+	if (IS_ERR(regmap))
+		return PTR_ERR(regmap);
+
+	/*
+	 * The AHB2PHY bridge in front of the USB eUSB2 PHY register space is
+	 * not brought up by firmware on this platform. Take the bridge out of
+	 * reset (NE_GCC_AHB2PHY_USB_TILE_BCR, active-high) and keep its
+	 * hardware-gated, voted clock always-on, otherwise the first access to
+	 * the PHY config registers faults.
+	 */
+	regmap_update_bits(regmap, 0x30000, BIT(0), 0); /* NE_GCC_AHB2PHY_USB_TILE_BCR */
+	qcom_branch_set_clk_en(regmap, 0x30004); /* NE_GCC_AHB2PHY_CLK */
+
+	return qcom_cc_really_probe(&pdev->dev, &ne_gcc_nord_desc, regmap);
 }
 
 static struct platform_driver ne_gcc_nord_driver = {
