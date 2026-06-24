@@ -4,13 +4,18 @@
  */
 
 #include <linux/clk-provider.h>
+#include <linux/clk.h>
 #include <linux/module.h>
 #include <linux/mod_devicetable.h>
+#include <linux/of.h>
+#include <linux/of_clk.h>
 #include <linux/platform_device.h>
+#include <linux/pm_domain.h>
 #include <linux/pm_runtime.h>
 #include <linux/regmap.h>
 
 #include <dt-bindings/clock/qcom,sa8775p-dispcc.h>
+#include <dt-bindings/power/qcom,rpmhpd.h>
 
 #include "clk-alpha-pll.h"
 #include "clk-branch.h"
@@ -1426,6 +1431,7 @@ static const struct qcom_cc_desc disp_cc_0_sa8775p_desc = {
 };
 
 static const struct of_device_id disp_cc_0_sa8775p_match_table[] = {
+	{ .compatible = "qcom,nord-dispcc0" },
 	{ .compatible = "qcom,sa8775p-dispcc0" },
 	{ }
 };
@@ -1433,6 +1439,7 @@ MODULE_DEVICE_TABLE(of, disp_cc_0_sa8775p_match_table);
 
 static int disp_cc_0_sa8775p_probe(struct platform_device *pdev)
 {
+	struct clk *ahb_clk;
 	struct regmap *regmap;
 	int ret;
 
@@ -1444,22 +1451,116 @@ static int disp_cc_0_sa8775p_probe(struct platform_device *pdev)
 	if (ret)
 		return ret;
 
+	/*
+	 * Enable the AHB bus clock (first entry in 'clocks') before accessing
+	 * any DISP_CC registers.  Without this the NW_GCC AHB path to DISP_CC
+	 * is gated and all register writes — including the RCG CMD_UPDATE used
+	 * by clk_rcg2_shared_init() — are silently dropped, causing the RCGs
+	 * to time out during clock registration.
+	 */
+	ahb_clk = of_clk_get(pdev->dev.of_node, 0);
+	if (IS_ERR(ahb_clk)) {
+		pm_runtime_put(&pdev->dev);
+		return dev_err_probe(&pdev->dev, PTR_ERR(ahb_clk),
+				     "failed to get AHB clock\n");
+	}
+	if (ahb_clk) {
+		ret = clk_prepare_enable(ahb_clk);
+		if (ret) {
+			clk_put(ahb_clk);
+			pm_runtime_put(&pdev->dev);
+			return dev_err_probe(&pdev->dev, ret,
+					     "failed to enable AHB clock\n");
+		}
+	}
+
+	/*
+	 * Vote MMCX to a minimum performance level so that the display clock
+	 * RCGs can update their configuration at boot.  On platforms without
+	 * firmware pre-voting the rail the MMCX voltage starts at the floor,
+	 * which is insufficient for RCG parent switches to complete.
+	 */
+	ret = dev_pm_genpd_set_performance_state(&pdev->dev,
+						 RPMH_REGULATOR_LEVEL_LOW_SVS);
+	if (ret)
+		dev_warn(&pdev->dev, "failed to set MMCX performance state: %d\n", ret);
+
 	regmap = qcom_cc_map(pdev, &disp_cc_0_sa8775p_desc);
 	if (IS_ERR(regmap)) {
+		if (ahb_clk) {
+			clk_disable_unprepare(ahb_clk);
+			clk_put(ahb_clk);
+		}
 		pm_runtime_put(&pdev->dev);
 		return PTR_ERR(regmap);
+	}
+
+	/*
+	 * Power on the MDSS CORE GDSC (at DISP_CC offset 0x9000) before
+	 * registering clocks.  The MDP and VSYNC RCGs sit in the MDSS register
+	 * space which is only accessible when the MDSS GDSC is powered.
+	 * Without this their clk_rcg2_shared_init() calls time out because the
+	 * CMD_UPDATE writes are lost into a collapsed domain.
+	 *
+	 * The GDSC has HW_CTRL (bit 1) set at reset which means hardware
+	 * controls it.  Switch to SW control (clear HW_CONTROL_MASK bit 1),
+	 * then clear SW_COLLAPSE (bit 0) to power on.  Poll CFG_GDSCR (0x9004)
+	 * bit 31 for PWR_ON_STATUS since POLL_CFG_GDSCR is set.
+	 */
+	/* Switch from HW_CTRL to SW_CTRL: clear bit 1 in GDSCR */
+	regmap_clear_bits(regmap, 0x9000, BIT(1));
+	/* Clear SW_COLLAPSE to power on */
+	regmap_clear_bits(regmap, 0x9000, BIT(0));
+	/* Also clear CFG_GDSCR SW_COLLAPSE */
+	regmap_clear_bits(regmap, 0x9004, BIT(0));
+	/* Poll CFG_GDSCR for PWR_ON_STATUS (bit 31) */
+	{
+		u32 val;
+		int count = 1500;
+		/* MDSS CORE GDSC has POLL_CFG_GDSCR set; status is in CFG_GDSCR */
+		while (count-- > 0) {
+			regmap_read(regmap, 0x9004, &val);
+			if (val & BIT(31))
+				break;
+			udelay(1);
+		}
+		if (!(val & BIT(31)))
+			dev_warn(&pdev->dev, "MDSS CORE GDSC did not power on\n");
 	}
 
 	clk_lucid_evo_pll_configure(&mdss_0_disp_cc_pll0, regmap, &mdss_0_disp_cc_pll0_config);
 	clk_lucid_evo_pll_configure(&mdss_0_disp_cc_pll1, regmap, &mdss_0_disp_cc_pll1_config);
 
 	/* Keep some clocks always enabled */
+	qcom_branch_set_clk_en(regmap, 0x8084); /* MDSS_0_DISP_CC_MDSS_AHB_CLK */
 	qcom_branch_set_clk_en(regmap, 0xc070); /* MDSS_0_DISP_CC_SLEEP_CLK */
 	qcom_branch_set_clk_en(regmap, 0xc054); /* MDSS_0_DISP_CC_XO_CLK */
 
 	ret = qcom_cc_really_probe(&pdev->dev, &disp_cc_0_sa8775p_desc, regmap);
 
-	pm_runtime_put(&pdev->dev);
+	/*
+	 * The AHB clock is now tracked by the clock framework through the
+	 * registered branch clock.  Release our explicit hold so it can be
+	 * managed normally.
+	 */
+	if (ahb_clk) {
+		clk_disable_unprepare(ahb_clk);
+		clk_put(ahb_clk);
+	}
+
+	/*
+	 * Keep the device runtime PM active (MMCX voted to low_svs) after
+	 * probe on no-firmware platforms.  Releasing the reference causes MMCX
+	 * to drop back to minimum, and subsequent pm_runtime_resume_and_get()
+	 * calls from the clock framework can time out waiting for the SCMI
+	 * RPMh response.
+	 *
+	 * The clock framework will manage pm_runtime via clk_pm_runtime_get/put
+	 * as clocks are prepared and unprepared, keeping the domain alive as
+	 * long as any clock consumer is active.
+	 *
+	 * pm_runtime_put(&pdev->dev) is deliberately omitted here.
+	 */
 
 	return ret;
 }
