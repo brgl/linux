@@ -1449,6 +1449,215 @@
 			reg = <0x0 0x01f60000 0x0 0xa0000>;
 		};
 
+		mdss0: display-subsystem@ae00000 {
+			compatible = "qcom,nord-mdss";
+			reg = <0x0 0x0ae00000 0x0 0x1000>;
+			reg-names = "mdss";
+
+			interrupts = <GIC_SPI 436 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-controller;
+			#interrupt-cells = <1>;
+
+			/* iommus = <&apps_smmu_1 0x03e0 0x1f>; firmware-managed SMR */
+
+			#address-cells = <2>;
+			#size-cells = <2>;
+			ranges;
+
+			status = "disabled";
+
+			mdss0_mdp: display-controller@ae01000 {
+				compatible = "qcom,nord-dpu";
+				reg = <0x0 0x0ae01000 0x0 0x8f000>,
+				      <0x0 0x0aeb0000 0x0 0x3000>;
+				reg-names = "mdp", "vbif";
+
+				interrupt-parent = <&mdss0>;
+				interrupts = <0>;
+
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					port@0 {
+						reg = <0>;
+						mdss0_intf0_out: endpoint {
+							remote-endpoint = <&mdss0_dp0_in>;
+						};
+					};
+
+					port@1 {
+						reg = <1>;
+						mdss0_intf4_out: endpoint {
+							remote-endpoint = <&mdss0_dp1_in>;
+						};
+					};
+
+					port@2 {
+						reg = <2>;
+						mdss0_intf5_out: endpoint {
+							remote-endpoint = <&mdss0_dp2_in>;
+						};
+					};
+
+					port@3 {
+						reg = <3>;
+						mdss0_intf6_out: endpoint {
+							remote-endpoint = <&mdss0_dp3_in>;
+						};
+					};
+				};
+			};
+
+			mdss0_dp0: displayport-controller@af54000 {
+				compatible = "qcom,nord-dp";
+
+				reg = <0x0 0x0af54000 0x0 0x200>,
+				      <0x0 0x0af54200 0x0 0x200>,
+				      <0x0 0x0af54400 0x0 0xc00>,
+				      <0x0 0x0af55000 0x0 0x400>,
+				      <0x0 0x0af55400 0x0 0x400>,
+				      <0x0 0x0af56000 0x0 0xd00>;
+				reg-names = "dp_ahb", "dp_aux", "dp_link",
+					    "dp_p0", "dp_p1", "dp_mmss_cc";
+
+				interrupt-parent = <&mdss0>;
+				interrupts = <12>;
+
+				#sound-dai-cells = <0>;
+
+				status = "disabled";
+
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					port@0 {
+						reg = <0>;
+						mdss0_dp0_in: endpoint {
+							remote-endpoint = <&mdss0_intf0_out>;
+						};
+					};
+
+					port@1 {
+						reg = <1>;
+						mdss0_dp0_out: endpoint { };
+					};
+				};
+			};
+
+			mdss0_dp1: displayport-controller@af5c000 {
+				compatible = "qcom,nord-dp";
+
+				reg = <0x0 0x0af5c000 0x0 0x200>,
+				      <0x0 0x0af5c200 0x0 0x200>,
+				      <0x0 0x0af5c400 0x0 0xc00>,
+				      <0x0 0x0af5d000 0x0 0x400>,
+				      <0x0 0x0af5d400 0x0 0x400>,
+				      <0x0 0x0af5e000 0x0 0xd00>;
+				reg-names = "dp_ahb", "dp_aux", "dp_link",
+					    "dp_p0", "dp_p1", "dp_mmss_cc";
+
+				interrupt-parent = <&mdss0>;
+				interrupts = <14>;
+
+				#sound-dai-cells = <0>;
+
+				status = "disabled";
+
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					port@0 {
+						reg = <0>;
+						mdss0_dp1_in: endpoint {
+							remote-endpoint = <&mdss0_intf4_out>;
+						};
+					};
+
+					port@1 {
+						reg = <1>;
+						mdss0_dp1_out: endpoint { };
+					};
+				};
+			};
+
+			mdss0_dp2: displayport-controller@af64000 {
+				compatible = "qcom,nord-dp";
+
+				reg = <0x0 0x0af64000 0x0 0x200>,
+				      <0x0 0x0af64200 0x0 0x200>,
+				      <0x0 0x0af64400 0x0 0xc00>,
+				      <0x0 0x0af65000 0x0 0x400>,
+				      <0x0 0x0af65400 0x0 0x400>,
+				      <0x0 0x0af66000 0x0 0xd00>;
+				reg-names = "dp_ahb", "dp_aux", "dp_link",
+					    "dp_p0", "dp_p1", "dp_mmss_cc";
+
+				interrupt-parent = <&mdss0>;
+				interrupts = <16>;
+
+				#sound-dai-cells = <0>;
+
+				status = "disabled";
+
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					port@0 {
+						reg = <0>;
+						mdss0_dp2_in: endpoint {
+							remote-endpoint = <&mdss0_intf5_out>;
+						};
+					};
+
+					port@1 {
+						reg = <1>;
+						mdss0_dp2_out: endpoint { };
+					};
+				};
+			};
+
+			mdss0_dp3: displayport-controller@af6c000 {
+				compatible = "qcom,nord-dp";
+
+				reg = <0x0 0x0af6c000 0x0 0x200>,
+				      <0x0 0x0af6c200 0x0 0x200>,
+				      <0x0 0x0af6c400 0x0 0xc00>,
+				      <0x0 0x0af6d000 0x0 0x400>,
+				      <0x0 0x0af6d400 0x0 0x400>,
+				      <0x0 0x0af6e000 0x0 0xd00>;
+				reg-names = "dp_ahb", "dp_aux", "dp_link",
+					    "dp_p0", "dp_p1", "dp_mmss_cc";
+
+				interrupt-parent = <&mdss0>;
+				interrupts = <18>;
+
+				#sound-dai-cells = <0>;
+
+				status = "disabled";
+
+				ports {
+					#address-cells = <1>;
+					#size-cells = <0>;
+
+					port@0 {
+						reg = <0>;
+						mdss0_dp3_in: endpoint {
+							remote-endpoint = <&mdss0_intf6_out>;
+						};
+					};
+
+					port@1 {
+						reg = <1>;
+						mdss0_dp3_out: endpoint { };
+					};
+				};
+			};
+		};
+
 		pdc: interrupt-controller@b220000 {
 			compatible = "qcom,nord-pdc",
 				     "qcom,pdc";
