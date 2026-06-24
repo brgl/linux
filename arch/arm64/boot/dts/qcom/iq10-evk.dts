@@ -533,3 +533,19 @@
 	vdda-pll-supply = <&vreg_l2h_1p2>;
 	status = "okay";
 };
+
+&mdss0 {
+	status = "okay";
+};
+
+&mdss0_mdp {
+	status = "okay";
+};
+
+&mdss0_dp0 {
+	status = "okay";
+};
+
+&mdss0_dp1 {
+	status = "okay";
+};
