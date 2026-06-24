@@ -1542,6 +1542,50 @@
 			reg = <0x0 0x010c3000 0x0 0x1000>;
 		};
 
+		ethernet0: ethernet@1a00000 {
+			compatible = "qcom,nord-ethqos",
+				     "qcom,sa8775p-ethqos";
+			reg = <0x0 0x01a00000 0x0 0x14000>,
+			      <0x0 0x01a7f000 0x0 0x1000>;
+			reg-names = "stmmaceth", "rgmii";
+
+			interrupts = <GIC_SPI 821 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 713 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "macirq", "sfty";
+
+			iommus = <&apps_smmu_2 0x1200 0xf>;
+			dma-coherent;
+
+			snps,tso;
+			snps,pbl = <32>;
+			rx-fifo-depth = <16384>;
+			tx-fifo-depth = <16384>;
+
+			status = "disabled";
+		};
+
+		ethernet1: ethernet@1a80000 {
+			compatible = "qcom,nord-ethqos",
+				     "qcom,sa8775p-ethqos";
+			reg = <0x0 0x01a80000 0x0 0x14000>,
+			      <0x0 0x01aff000 0x0 0x1000>;
+			reg-names = "stmmaceth", "rgmii";
+
+			interrupts = <GIC_SPI 820 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 361 IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "macirq", "sfty";
+
+			iommus = <&apps_smmu_2 0x11c0 0xf>;
+			dma-coherent;
+
+			snps,tso;
+			snps,pbl = <32>;
+			rx-fifo-depth = <16384>;
+			tx-fifo-depth = <16384>;
+
+			status = "disabled";
+		};
+
 		ufs_mem_hc: ufshc@1d44000 {
 			compatible = "qcom,nord-ufshc",
 				     "qcom,ufshc",
