@@ -1729,3 +1729,86 @@
 		};
 	};
 };
+
+&soc {
+	bwmon_llcc: interconnect-bwmon@20470000 {
+		compatible = "qcom,nord-llcc-bwmon", "qcom,sc7280-llcc-bwmon";
+		reg = <0x0 0x20470000 0x0 0x10000>;
+		interrupts = <GIC_SPI 253 IRQ_TYPE_LEVEL_HIGH>;
+		interconnects = <&mc_virt MASTER_LLCC QCOM_ICC_TAG_ACTIVE_ONLY
+				 &mc_virt SLAVE_EBI1 QCOM_ICC_TAG_ACTIVE_ONLY>;
+
+		operating-points-v2 = <&llcc_bwmon_opp_table>;
+
+		llcc_bwmon_opp_table: opp-table {
+			compatible = "operating-points-v2";
+
+			/* DDR frequencies from DDRPHY frequency plan (nordschleife_2.0):
+			 * SVS=1555.2, SVS_L1=2092.8, NOM=3187.2, TURBO=3686.4,
+			 * TURBO_L1=4224.0, TURBO_L3=4761.6 MHz
+			 * kBps = freq_MHz * 2 (DDR) * 2 (bytes, 16-bit) * 4 (channels) * 1000
+			 */
+			opp-0 {
+				opp-peak-kBps = <24883200>;
+			};
+
+			opp-1 {
+				opp-peak-kBps = <33484800>;
+			};
+
+			opp-2 {
+				opp-peak-kBps = <50995200>;
+			};
+
+			opp-3 {
+				opp-peak-kBps = <58982400>;
+			};
+
+			opp-4 {
+				opp-peak-kBps = <67584000>;
+			};
+
+			opp-5 {
+				opp-peak-kBps = <76185600>;
+			};
+		};
+	};
+
+	bwmon_cpu: interconnect-bwmon@1015300 {
+		compatible = "qcom,nord-cpu-bwmon", "qcom,sdm845-bwmon";
+		reg = <0x0 0x01015300 0x0 0x600>;
+		interrupts = <GIC_SPI 844 IRQ_TYPE_LEVEL_HIGH>;
+		interconnects = <&hscnoc MASTER_APPSS_PROC QCOM_ICC_TAG_ACTIVE_ONLY
+				 &hscnoc SLAVE_LLCC QCOM_ICC_TAG_ACTIVE_ONLY>;
+
+		operating-points-v2 = <&cpu_bwmon_opp_table>;
+
+		cpu_bwmon_opp_table: opp-table {
+			compatible = "operating-points-v2";
+
+			opp-0 {
+				opp-peak-kBps = <24883200>;
+			};
+
+			opp-1 {
+				opp-peak-kBps = <33484800>;
+			};
+
+			opp-2 {
+				opp-peak-kBps = <50995200>;
+			};
+
+			opp-3 {
+				opp-peak-kBps = <58982400>;
+			};
+
+			opp-4 {
+				opp-peak-kBps = <67584000>;
+			};
+
+			opp-5 {
+				opp-peak-kBps = <76185600>;
+			};
+		};
+	};
+};

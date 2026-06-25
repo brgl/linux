@@ -869,6 +869,8 @@ static const struct of_device_id bwmon_of_match[] = {
 	{ .compatible = "qcom,sc7280-cpu-bwmon", .data = &sdm845_cpu_bwmon_data },
 	{ .compatible = "qcom,sc8280xp-cpu-bwmon", .data = &sdm845_cpu_bwmon_data },
 	{ .compatible = "qcom,sm8550-cpu-bwmon", .data = &sdm845_cpu_bwmon_data },
+	{ .compatible = "qcom,nord-llcc-bwmon", .data = &sc7280_llcc_bwmon_data },
+	{ .compatible = "qcom,nord-cpu-bwmon", .data = &sdm845_cpu_bwmon_data },
 	{}
 };
 MODULE_DEVICE_TABLE(of, bwmon_of_match);
