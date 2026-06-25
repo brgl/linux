@@ -42,6 +42,18 @@
 #define SDM845_QSCRATCH_SIZE			0x400
 #define SDM845_DWC3_CORE_SIZE			0xcd00
 
+struct dwc3_qcom_data {
+	u32 qscratch_base_offset;
+};
+
+static const struct dwc3_qcom_data sdm845_data = {
+	.qscratch_base_offset = SDM845_QSCRATCH_BASE_OFFSET,
+};
+
+static const struct dwc3_qcom_data nord_data = {
+	.qscratch_base_offset = SDM845_QSCRATCH_BASE_OFFSET,
+};
+
 /* Interconnect path bandwidths in MBps */
 #define USB_MEMORY_AVG_HS_BW MBps_to_icc(240)
 #define USB_MEMORY_PEAK_HS_BW MBps_to_icc(700)
@@ -602,9 +614,22 @@ static void dwc3_qcom_run_stop_notifier(struct dwc3 *dwc, bool is_on)
 	pm_runtime_mark_last_busy(qcom->dev);
 }
 
+static void dwc3_qcom_post_phy_init(struct dwc3 *dwc)
+{
+	struct dwc3_qcom *qcom = to_dwc3_qcom(dwc);
+
+	/*
+	 * The core register interface is clocked by the HS PHY's UTMI clock,
+	 * which is only running once the PHY has been initialized. Select the
+	 * UTMI clock as pipe clock now, before the core touches its registers.
+	 */
+	dwc3_qcom_select_utmi_clk(qcom);
+}
+
 struct dwc3_glue_ops dwc3_qcom_glue_ops = {
 	.pre_set_role	= dwc3_qcom_set_role_notifier,
 	.pre_run_stop	= dwc3_qcom_run_stop_notifier,
+	.post_phy_init	= dwc3_qcom_post_phy_init,
 };
 
 static int dwc3_qcom_probe(struct platform_device *pdev)
@@ -635,10 +660,21 @@ static int dwc3_qcom_probe(struct platform_device *pdev)
 		return dev_err_probe(dev, ret, "failed to get clocks\n");
 	qcom->num_clocks = ret;
 
+	ret = clk_bulk_prepare_enable(qcom->num_clocks, qcom->clks);
+	if (ret < 0)
+		return ret;
+
+	/*
+	 * Assert and deassert the block reset after clocks are enabled so
+	 * the eUSB2 PHY wrapper's register interface clock (WCLK, derived
+	 * from usb20_master_clk) is running when the reset releases.  A
+	 * reset deasserted before clocks are on leaves the PHY register
+	 * block unresponsive.
+	 */
 	ret = reset_control_assert(qcom->resets);
 	if (ret) {
 		dev_err(&pdev->dev, "failed to assert resets, err=%d\n", ret);
-		return ret;
+		goto clk_disable;
 	}
 
 	usleep_range(10, 1000);
@@ -646,12 +682,8 @@ static int dwc3_qcom_probe(struct platform_device *pdev)
 	ret = reset_control_deassert(qcom->resets);
 	if (ret) {
 		dev_err(&pdev->dev, "failed to deassert resets, err=%d\n", ret);
-		return ret;
+		goto clk_disable;
 	}
-
-	ret = clk_bulk_prepare_enable(qcom->num_clocks, qcom->clks);
-	if (ret < 0)
-		return ret;
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (!r) {
@@ -659,7 +691,11 @@ static int dwc3_qcom_probe(struct platform_device *pdev)
 		goto clk_disable;
 	}
 	res = *r;
-	res.end = res.start + SDM845_QSCRATCH_BASE_OFFSET;
+	{
+		const struct dwc3_qcom_data *d = of_device_get_match_data(dev);
+		u32 qs_offset = d ? d->qscratch_base_offset : SDM845_QSCRATCH_BASE_OFFSET;
+		res.end = res.start + qs_offset;
+	}
 
 	qcom->qscratch_base = devm_ioremap(dev, res.end, SDM845_QSCRATCH_SIZE);
 	if (!qcom->qscratch_base) {
@@ -677,11 +713,15 @@ static int dwc3_qcom_probe(struct platform_device *pdev)
 	/*
 	 * Disable pipe_clk requirement if specified. Used when dwc3
 	 * operates without SSPHY and only HS/FS/LS modes are supported.
+	 *
+	 * On this no-firmware platform the QSCRATCH register interface is
+	 * gated by the eUSB2 PHY's UTMI clock, which only starts running once
+	 * the PHY is initialized by dwc3_core_probe(). Defer the select-utmi
+	 * QSCRATCH write until after the core has brought the PHY up, otherwise
+	 * the first QSCRATCH access faults with an external abort.
 	 */
 	ignore_pipe_clk = device_property_read_bool(dev,
 				"qcom,select-utmi-as-pipe-clk");
-	if (ignore_pipe_clk)
-		dwc3_qcom_select_utmi_clk(qcom);
 
 	qcom->mode = usb_get_dr_mode(dev);
 
@@ -704,7 +744,9 @@ static int dwc3_qcom_probe(struct platform_device *pdev)
 	probe_data.dwc = &qcom->dwc;
 	probe_data.res = &res;
 	probe_data.ignore_clocks_and_resets = true;
+	probe_data.early_phy_init = ignore_pipe_clk;
 	probe_data.properties = DWC3_DEFAULT_PROPERTIES;
+
 	ret = dwc3_core_probe(&probe_data);
 	if (ret)  {
 		ret = dev_err_probe(dev, ret, "failed to register DWC3 Core\n");
@@ -839,7 +881,8 @@ static const struct dev_pm_ops dwc3_qcom_dev_pm_ops = {
 };
 
 static const struct of_device_id dwc3_qcom_of_match[] = {
-	{ .compatible = "qcom,snps-dwc3" },
+	{ .compatible = "qcom,nord-dwc3", .data = &nord_data },
+	{ .compatible = "qcom,snps-dwc3", .data = &sdm845_data },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, dwc3_qcom_of_match);
