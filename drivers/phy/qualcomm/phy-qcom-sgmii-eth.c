@@ -357,6 +357,7 @@ static int qcom_dwmac_sgmii_phy_probe(struct platform_device *pdev)
 	struct phy_provider *provider;
 	void __iomem *base;
 	struct phy *phy;
+	int ret;
 
 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
 	if (!data)
@@ -380,6 +381,23 @@ static int qcom_dwmac_sgmii_phy_probe(struct platform_device *pdev)
 	data->refclk = devm_clk_get(dev, "sgmi_ref");
 	if (IS_ERR(data->refclk))
 		return PTR_ERR(data->refclk);
+
+	/*
+	 * Enable the SerDes reference clock at probe time.  The SE_GCC EMAC
+	 * clock-domain reset synchronizers (cdc_demet_ares) require XO
+	 * (supplied here via TCSR_UX_SGMII_x_CLKREF_EN) to propagate the
+	 * block reset de-assertion.  Without it the EMAC MAC registers remain
+	 * unresponsive even with GDSC on, AXI clock running, and BCR deasserted.
+	 */
+	ret = clk_prepare_enable(data->refclk);
+	if (ret)
+		return ret;
+
+	ret = devm_add_action_or_reset(dev,
+				       (void (*)(void *))clk_disable_unprepare,
+				       data->refclk);
+	if (ret)
+		return ret;
 
 	provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
 	if (IS_ERR(provider))
