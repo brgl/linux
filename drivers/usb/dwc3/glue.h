@@ -39,6 +39,7 @@ struct dwc3_probe_data {
 	struct resource *res;
 	bool ignore_clocks_and_resets;
 	bool skip_core_init_mode;
+	bool early_phy_init;
 	struct dwc3_properties properties;
 };
 
