@@ -2275,10 +2275,42 @@ int dwc3_core_probe(const struct dwc3_probe_data *data)
 	if (ret)
 		goto err_assert_reset;
 
+	/*
+	 * On some Qualcomm eUSB2 designs (qcom,select-utmi-as-pipe-clk) the
+	 * DWC3 core register interface is clocked by the HS PHY's UTMI clock.
+	 * The PHY must therefore be initialized before the very first core
+	 * register access (the GSNPSID read in dwc3_core_is_valid), otherwise
+	 * that access faults with an external abort. Bring the HS PHY up early
+	 * on those platforms; phys_ready makes dwc3_core_init() skip the
+	 * second get, and phy_init() is reference counted so the later call in
+	 * dwc3_core_init() does not re-run the PHY's init sequence.
+	 */
+	if (data->early_phy_init) {
+		dwc->num_usb2_ports = 1;
+		dwc->num_usb3_ports = 1;
+
+		ret = dwc3_core_get_phy(dwc);
+		if (ret)
+			goto err_disable_clks;
+		dwc->phys_ready = true;
+
+		ret = dwc3_phy_init(dwc);
+		if (ret)
+			goto err_disable_clks;
+
+		/*
+		 * Let the glue complete any setup that depends on the PHY
+		 * clock now being live but must happen before the first core
+		 * register access (e.g. selecting the UTMI clock as pipe clock,
+		 * which gates the core register interface on this platform).
+		 */
+		dwc3_post_phy_init(dwc);
+	}
+
 	if (!dwc3_core_is_valid(dwc)) {
 		dev_err(dwc->dev, "this is not a DesignWare USB3 DRD Core\n");
 		ret = -ENODEV;
-		goto err_disable_clks;
+		goto err_exit_phy;
 	}
 
 	dev_set_drvdata(dev, dwc);
@@ -2368,6 +2400,9 @@ err_allow_rpm:
 	pm_runtime_dont_use_autosuspend(dev);
 	pm_runtime_set_suspended(dev);
 	pm_runtime_put_noidle(dev);
+err_exit_phy:
+	if (data->early_phy_init)
+		dwc3_phy_exit(dwc);
 err_disable_clks:
 	dwc3_clk_disable(dwc);
 err_assert_reset:
