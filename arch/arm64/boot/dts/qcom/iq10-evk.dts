@@ -557,16 +557,12 @@
 	status = "okay";
 };
 
-&usb_2 {
-	dr_mode = "host";
-	status = "okay";
-};
-
-&usb_2_hsphy {
-	vdd-supply = <&vreg_l1e_0p9>;
-	vdda12-supply = <&vreg_l2i_1p2>;
-	status = "okay";
-};
+/*
+ * usb_2 (USB2.0 HS-only @0xa200000) is not wired to anything on the IQ-10
+ * board — its eUSB2 lines (EUSB2_EDP/EDM) terminate unrouted. The SoC node
+ * stays defined in nord.dtsi; it is simply left disabled here. Enabling it
+ * (with the PHY unconnected) hangs the system at xhci registration.
+ */
 
 &ufs_mem_hc {
 	reset-gpios = <&tlmm 181 GPIO_ACTIVE_LOW>;
