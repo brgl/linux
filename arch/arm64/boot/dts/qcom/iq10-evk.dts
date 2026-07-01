@@ -7,6 +7,7 @@
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/regulator/qcom,rpmh-regulator.h>
+#include <dt-bindings/usb/pd.h>
 
 #include "nord-iq10.dtsi"
 
@@ -31,6 +32,22 @@
 		regulator-name = "VREG_HUB_3P3";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
+
+	/*
+	 * VREG_PX3_MD1P8 (1.8V): TPS6594742 UPMS PMIC SMPS5 output
+	 * (VDD_SAIL_PX3_VREG_S1P8). The TPS6594742 is managed by the SAIL
+	 * RTOS over SAIL I2C (SGP0/1); the main SoC Linux kernel has no
+	 * direct path to it. Describe as a fixed always-on stub — SAIL
+	 * firmware enables SMPS5 unconditionally at startup.
+	 * Powers: FUSB15201 VDD (U15) and its I2C level shifter VCCA (U17).
+	 */
+	vreg_px3_1p8: px3-1p8-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "VREG_PX3_MD1P8";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
 		regulator-always-on;
 	};
 
@@ -599,9 +616,10 @@
 };
 
 /*
- * eUSB2 repeaters — NXP PTN3222 (U12 for usb_0, U211 for usb_1).
- * Both sit on i2c9 (QUP1_SE2, GPIO127/128). Reset is via PMIC I
- * GPIOs 9 and 10 (0-indexed: PMI_GPIO_09 = cell 8, PMI_GPIO_10 = cell 9).
+ * i2c9 (QUP1_SE2, GPIO127/128): USB-related I2C peripherals.
+ *  - U12/U211: NXP PTN3222 eUSB2 repeaters (reset via PMIC I GPIOs 9/10)
+ *  - U15: onsemi FUSB15201 Type-C PD controller for connector "0" (JUSB0)
+ *         (interrupt via PMIC I GPIO 8, I2C address 0x22)
  */
 &i2c9 {
 	status = "okay";
@@ -622,6 +640,25 @@
 		vdd3v3-supply = <&vreg_hub_3p3>;
 		vdd1v8-supply = <&vreg_l3e_1p8>;
 		reset-gpios = <&pmic_i_gpios 9 GPIO_ACTIVE_LOW>;
+	};
+
+	typec@22 {
+		compatible = "onsemi,fusb15201", "tcpci";
+		reg = <0x22>;
+		interrupt-parent = <&pmic_i_gpios>;
+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+		vdd-supply = <&vreg_px3_1p8>;
+
+		connector {
+			compatible = "usb-c-connector";
+			label = "USB-C";
+			data-role = "dual";
+			power-role = "dual";
+			try-power-role = "sink";
+			source-pdos = <PDO_FIXED(5000, 900, PDO_FIXED_USB_COMM)>;
+			sink-pdos = <PDO_FIXED(5000, 3000, PDO_FIXED_USB_COMM)>;
+			op-sink-microwatt = <10000000>;
+		};
 	};
 };
 
