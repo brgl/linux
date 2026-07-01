@@ -586,10 +586,14 @@ static int snps_eusb2_hsphy_probe(struct platform_device *pdev)
 		return dev_err_probe(dev, ret,
 				     "failed to get regulator supplies\n");
 
-	phy->repeater = devm_of_phy_optional_get(dev, np, NULL);
-	if (IS_ERR(phy->repeater))
-		return dev_err_probe(dev, PTR_ERR(phy->repeater),
-				     "failed to get repeater\n");
+	if (of_property_present(np, "phys")) {
+		phy->repeater = devm_of_phy_get(dev, np, NULL);
+		if (IS_ERR(phy->repeater))
+			return dev_err_probe(dev, PTR_ERR(phy->repeater),
+					     "failed to get repeater\n");
+	} else {
+		phy->repeater = NULL;
+	}
 
 	generic_phy = devm_phy_create(dev, NULL, &snps_eusb2_hsphy_ops);
 	if (IS_ERR(generic_phy)) {

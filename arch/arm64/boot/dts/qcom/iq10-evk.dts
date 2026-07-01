@@ -22,6 +22,18 @@
 		stdout-path = "serial0:115200n8";
 	};
 
+	/*
+	 * The GL3590 hub's VDD (3.3V) comes from a dedicated always-on board
+	 * rail (VREG_PER_3P3) — there is no PMIC LDO behind it.
+	 */
+	vreg_hub_3p3: hub-vdd-regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "VREG_HUB_3P3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+	};
+
 	clocks {
 		xo_board: xo-board-clk {
 			compatible = "fixed-clock";
@@ -531,6 +543,8 @@
 &usb_0_hsphy {
 	vdd-supply = <&vreg_l1e_0p9>;
 	vdda12-supply = <&vreg_l2i_1p2>;
+	phys = <&usb_0_repeater>;
+	phy-names = "usb2-phy";
 	status = "okay";
 };
 
@@ -543,11 +557,38 @@
 &usb_1 {
 	dr_mode = "host";
 	status = "okay";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	/*
+	 * Genesys Logic GL3590 USB3.2 4-port hub (U13).
+	 * Upstream port connects to the SoC's usb_1 controller.
+	 * Reset is shared between the HS and SS hub instances (GPIO170,
+	 * active-low). VDD12 (1.2V) is shared with USB PHY PLL rail.
+	 */
+	gl3590_hs: hub@1 {
+		compatible = "usb5e3,610";
+		reg = <1>;
+		reset-gpios = <&tlmm 170 GPIO_ACTIVE_LOW>;
+		vdd-supply = <&vreg_hub_3p3>;
+		peer-hub = <&gl3590_ss>;
+	};
+
+	gl3590_ss: hub@2 {
+		compatible = "usb5e3,625";
+		reg = <2>;
+		vdd-supply = <&vreg_hub_3p3>;
+		vdd12-supply = <&vreg_l2i_1p2>;
+		peer-hub = <&gl3590_hs>;
+	};
 };
 
 &usb_1_hsphy {
 	vdd-supply = <&vreg_l1e_0p9>;
 	vdda12-supply = <&vreg_l2i_1p2>;
+	phys = <&usb_1_repeater>;
+	phy-names = "usb2-phy";
 	status = "okay";
 };
 
@@ -555,6 +596,33 @@
 	vdda-phy-supply = <&vreg_l1h_0p9>;
 	vdda-pll-supply = <&vreg_l2h_1p2>;
 	status = "okay";
+};
+
+/*
+ * eUSB2 repeaters — NXP PTN3222 (U12 for usb_0, U211 for usb_1).
+ * Both sit on i2c9 (QUP1_SE2, GPIO127/128). Reset is via PMIC I
+ * GPIOs 9 and 10 (0-indexed: PMI_GPIO_09 = cell 8, PMI_GPIO_10 = cell 9).
+ */
+&i2c9 {
+	status = "okay";
+
+	usb_0_repeater: redriver@43 {
+		compatible = "nxp,ptn3222";
+		reg = <0x43>;
+		#phy-cells = <0>;
+		vdd3v3-supply = <&vreg_hub_3p3>;
+		vdd1v8-supply = <&vreg_l3e_1p8>;
+		reset-gpios = <&pmic_i_gpios 8 GPIO_ACTIVE_LOW>;
+	};
+
+	usb_1_repeater: redriver@4f {
+		compatible = "nxp,ptn3222";
+		reg = <0x4f>;
+		#phy-cells = <0>;
+		vdd3v3-supply = <&vreg_hub_3p3>;
+		vdd1v8-supply = <&vreg_l3e_1p8>;
+		reset-gpios = <&pmic_i_gpios 9 GPIO_ACTIVE_LOW>;
+	};
 };
 
 /*
