@@ -4212,6 +4212,7 @@ static int stmmac_open(struct net_device *dev)
 
 err_serdes:
 	stmmac_legacy_serdes_power_down(priv);
+	phylink_disconnect_phy(priv->phylink);
 err_disconnect_phy:
 	phylink_disconnect_phy(priv->phylink);
 err_runtime_pm:

@@ -95,6 +95,7 @@ struct ethqos_emac_driver_data {
 	const char *link_clk_name;
 	struct dwmac4_addrs dwmac4_addrs;
 	bool needs_sgmii_loopback;
+	unsigned int sgmii_phy_cntrl1_offset; /* 0 = use default 0xf4 */
 };
 
 struct qcom_ethqos {
@@ -104,6 +105,7 @@ struct qcom_ethqos {
 	struct clk *apb_clk;
 	struct phy *serdes_phy;
 	phy_interface_t phy_mode;
+	unsigned int sgmii_phy_cntrl1_offset;
 
 	const struct ethqos_emac_por *rgmii_por;
 	unsigned int num_rgmii_por;
@@ -190,14 +192,21 @@ static int ethqos_set_clk_tx_rate(void *bsp_priv, struct clk *clk_tx_i,
 static void
 qcom_ethqos_set_sgmii_loopback(struct qcom_ethqos *ethqos, bool enable)
 {
-	if (!ethqos->needs_sgmii_loopback ||
-	    ethqos->phy_mode != PHY_INTERFACE_MODE_2500BASEX)
+	unsigned int offset;
+
+	if (!ethqos->needs_sgmii_loopback)
 		return;
+	if (ethqos->phy_mode != PHY_INTERFACE_MODE_2500BASEX &&
+	    ethqos->phy_mode != PHY_INTERFACE_MODE_SGMII)
+		return;
+
+	offset = ethqos->sgmii_phy_cntrl1_offset ?
+		 ethqos->sgmii_phy_cntrl1_offset : EMAC_WRAPPER_SGMII_PHY_CNTRL1;
 
 	rgmii_updatel(ethqos,
 		      SGMII_PHY_CNTRL1_SGMII_TX_TO_RX_LOOPBACK_EN,
 		      enable ? SGMII_PHY_CNTRL1_SGMII_TX_TO_RX_LOOPBACK_EN : 0,
-		      EMAC_WRAPPER_SGMII_PHY_CNTRL1);
+		      offset);
 }
 
 static void ethqos_set_func_clk_en(struct qcom_ethqos *ethqos)
@@ -294,6 +303,37 @@ static const struct ethqos_emac_driver_data emac_v4_0_0_data = {
 	.link_clk_name = "phyaux",
 	.needs_sgmii_loopback = true,
 	.dma_addr_width = 36,
+	.dwmac4_addrs = {
+		.dma_chan = 0x00008100,
+		.dma_chan_offset = 0x1000,
+		.mtl_chan = 0x00008000,
+		.mtl_chan_offset = 0x1000,
+		.mtl_ets_ctrl = 0x00008010,
+		.mtl_ets_ctrl_offset = 0x1000,
+		.mtl_txq_weight = 0x00008018,
+		.mtl_txq_weight_offset = 0x1000,
+		.mtl_send_slp_cred = 0x0000801c,
+		.mtl_send_slp_cred_offset = 0x1000,
+		.mtl_high_cred = 0x00008020,
+		.mtl_high_cred_offset = 0x1000,
+		.mtl_low_cred = 0x00008024,
+		.mtl_low_cred_offset = 0x1000,
+	},
+};
+
+/*
+ * Nord (SA8797P) uses a USXGMII-class RGMII IO wrapper; the SGMII PHY
+ * control register moved from the SA8775P offset 0xf4 to 0x174.
+ */
+static const struct ethqos_emac_driver_data emac_nord_data = {
+	.rgmii_por = emac_v4_0_0_por,
+	.num_rgmii_por = ARRAY_SIZE(emac_v4_0_0_por),
+	.rgmii_config_loopback_en = false,
+	.has_emac_ge_3 = true,
+	.link_clk_name = "phyaux",
+	.needs_sgmii_loopback = true,
+	.dma_addr_width = 36,
+	.sgmii_phy_cntrl1_offset = 0x174,
 	.dwmac4_addrs = {
 		.dma_chan = 0x00008100,
 		.dma_chan_offset = 0x1000,
@@ -756,6 +796,7 @@ static int qcom_ethqos_probe(struct platform_device *pdev)
 	ethqos->rgmii_config_loopback_en = data->rgmii_config_loopback_en;
 	ethqos->has_emac_ge_3 = data->has_emac_ge_3;
 	ethqos->needs_sgmii_loopback = data->needs_sgmii_loopback;
+	ethqos->sgmii_phy_cntrl1_offset = data->sgmii_phy_cntrl1_offset;
 
 	ethqos->link_clk = devm_clk_get(dev, data->link_clk_name ?: "rgmii");
 	if (IS_ERR(ethqos->link_clk))
@@ -813,7 +854,7 @@ static int qcom_ethqos_probe(struct platform_device *pdev)
 }
 
 static const struct of_device_id qcom_ethqos_match[] = {
-	{ .compatible = "qcom,nord-ethqos", .data = &emac_v4_0_0_data},
+	{ .compatible = "qcom,nord-ethqos", .data = &emac_nord_data},
 	{ .compatible = "qcom,qcs404-ethqos", .data = &emac_v2_3_0_data},
 	{ .compatible = "qcom,sa8775p-ethqos", .data = &emac_v4_0_0_data},
 	{ .compatible = "qcom,sc8280xp-ethqos", .data = &emac_v3_0_0_data},
