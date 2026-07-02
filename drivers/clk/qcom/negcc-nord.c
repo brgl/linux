@@ -613,7 +613,6 @@ static struct clk_rcg2 ne_gcc_usb31_prim_master_clk_src = {
 	.hid_width = 5,
 	.parent_map = ne_gcc_parent_map_1,
 	.freq_tbl = ftbl_ne_gcc_usb31_prim_master_clk_src,
-	.hw_clk_ctrl = true,
 	.clkr.hw.init = &(const struct clk_init_data) {
 		.name = "ne_gcc_usb31_prim_master_clk_src",
 		.parent_data = ne_gcc_parent_data_1,
@@ -629,7 +628,6 @@ static struct clk_rcg2 ne_gcc_usb31_prim_mock_utmi_clk_src = {
 	.hid_width = 5,
 	.parent_map = ne_gcc_parent_map_0,
 	.freq_tbl = ftbl_ne_gcc_ufs_phy_phy_aux_clk_src,
-	.hw_clk_ctrl = true,
 	.clkr.hw.init = &(const struct clk_init_data) {
 		.name = "ne_gcc_usb31_prim_mock_utmi_clk_src",
 		.parent_data = ne_gcc_parent_data_0,
@@ -645,7 +643,6 @@ static struct clk_rcg2 ne_gcc_usb31_sec_master_clk_src = {
 	.hid_width = 5,
 	.parent_map = ne_gcc_parent_map_0,
 	.freq_tbl = ftbl_ne_gcc_usb31_prim_master_clk_src,
-	.hw_clk_ctrl = true,
 	.clkr.hw.init = &(const struct clk_init_data) {
 		.name = "ne_gcc_usb31_sec_master_clk_src",
 		.parent_data = ne_gcc_parent_data_0,
@@ -661,7 +658,6 @@ static struct clk_rcg2 ne_gcc_usb31_sec_mock_utmi_clk_src = {
 	.hid_width = 5,
 	.parent_map = ne_gcc_parent_map_0,
 	.freq_tbl = ftbl_ne_gcc_ufs_phy_phy_aux_clk_src,
-	.hw_clk_ctrl = true,
 	.clkr.hw.init = &(const struct clk_init_data) {
 		.name = "ne_gcc_usb31_sec_mock_utmi_clk_src",
 		.parent_data = ne_gcc_parent_data_0,
@@ -677,7 +673,6 @@ static struct clk_rcg2 ne_gcc_usb3_prim_phy_aux_clk_src = {
 	.hid_width = 5,
 	.parent_map = ne_gcc_parent_map_3,
 	.freq_tbl = ftbl_ne_gcc_ufs_phy_phy_aux_clk_src,
-	.hw_clk_ctrl = true,
 	.clkr.hw.init = &(const struct clk_init_data) {
 		.name = "ne_gcc_usb3_prim_phy_aux_clk_src",
 		.parent_data = ne_gcc_parent_data_3,
@@ -693,7 +688,6 @@ static struct clk_rcg2 ne_gcc_usb3_sec_phy_aux_clk_src = {
 	.hid_width = 5,
 	.parent_map = ne_gcc_parent_map_3,
 	.freq_tbl = ftbl_ne_gcc_ufs_phy_phy_aux_clk_src,
-	.hw_clk_ctrl = true,
 	.clkr.hw.init = &(const struct clk_init_data) {
 		.name = "ne_gcc_usb3_sec_phy_aux_clk_src",
 		.parent_data = ne_gcc_parent_data_3,
@@ -1613,7 +1607,13 @@ static struct clk_branch ne_gcc_usb31_sec_sleep_clk = {
 
 static struct clk_branch ne_gcc_usb3_prim_phy_aux_clk = {
 	.halt_reg = 0x2a06c,
-	.halt_check = BRANCH_HALT,
+	/*
+	 * This branch lives in the USB31_PRIM GDSC domain. The GDSC is not
+	 * wired into the genpd framework on Nord, so GDSC_POWER_UP_COMPLETE
+	 * never sets and CLK_OFF never clears. Skip the halt poll as with
+	 * the pipe clock.
+	 */
+	.halt_check = BRANCH_HALT_SKIP,
 	.clkr = {
 		.enable_reg = 0x2a06c,
 		.enable_mask = BIT(0),
@@ -1631,7 +1631,8 @@ static struct clk_branch ne_gcc_usb3_prim_phy_aux_clk = {
 
 static struct clk_branch ne_gcc_usb3_prim_phy_com_aux_clk = {
 	.halt_reg = 0x2a070,
-	.halt_check = BRANCH_HALT,
+	/* Same GDSC domain issue as ne_gcc_usb3_prim_phy_aux_clk above. */
+	.halt_check = BRANCH_HALT_SKIP,
 	.clkr = {
 		.enable_reg = 0x2a070,
 		.enable_mask = BIT(0),
