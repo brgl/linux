@@ -3750,6 +3750,60 @@ static int qmp_combo_com_init(struct qmp_combo *qmp, bool force)
 		goto err_disable_regulators;
 	}
 
+	/*
+	 * TODO: Nord/SA8797P workaround — the USB31_PRIM and USB3_PHY GDSCs
+	 * are not wired into the negcc genpd framework, so clk_bulk_prepare_
+	 * enable() below cannot bring the combo-PHY GDSC out of collapse.
+	 * Without a powered GDSC, GDSC_POWER_UP_COMPLETE never sets, the
+	 * aux/com_aux/pipe branch CLK_OFF bits never clear, and all DP-PHY
+	 * MMIO writes are silently dropped.
+	 *
+	 * Work around by raw-poking the negcc register space: deassert the
+	 * four USB BCRs and clear SW_COLLAPSE on both GDSCs, then poll for
+	 * power-up completion before proceeding. This must run on every
+	 * com_init because the GDSC re-collapses on com_exit.
+	 *
+	 * Long-term fix: wire USB31_PRIM and USB3_PHY GDSCs into negcc genpd
+	 * and add a proper vote from the combo PHY driver.
+	 */
+	if (cfg == &nord_usb3dpphy_cfg) {
+		void __iomem *ng = ioremap(0x08900000, 0xf4200);
+		int i;
+
+		if (ng) {
+			writel_relaxed(0, ng + 0x2a000); /* USB31_PRIM_BCR       */
+			writel_relaxed(0, ng + 0x2b000); /* USB3_PHY_PRIM_BCR    */
+			writel_relaxed(0, ng + 0x2b004); /* USB3PHY_PHY_PRIM_BCR */
+			writel_relaxed(0, ng + 0x2b008); /* USB3_DP_PHY_PRIM_BCR */
+			/* clear SW_COLLAPSE on USB31_PRIM GDSC (0x2a004) */
+			writel_relaxed(readl_relaxed(ng + 0x2a004) & ~0x1,
+				       ng + 0x2a004);
+			/* clear SW_COLLAPSE on USB3_PHY GDSC (0x2b00c) */
+			writel_relaxed(readl_relaxed(ng + 0x2b00c) & ~0x1,
+				       ng + 0x2b00c);
+
+			/* poll USB31_PRIM GDSC for GDSC_POWER_UP_COMPLETE (bit 16) */
+			for (i = 0; i < 100; i++) {
+				if (readl_relaxed(ng + 0x2a008) & BIT(16))
+					break;
+				udelay(10);
+			}
+			/* poll USB3_PHY GDSC for PWR_ON (bit 31) */
+			for (i = 0; i < 100; i++) {
+				if (readl_relaxed(ng + 0x2b00c) & BIT(31))
+					break;
+				udelay(10);
+			}
+			if (!(readl_relaxed(ng + 0x2a008) & BIT(16)) ||
+			    !(readl_relaxed(ng + 0x2b00c) & BIT(31)))
+				dev_warn(qmp->dev,
+					 "Nord USB GDSC power-up incomplete: ctrl=%#x phy=%#x\n",
+					 readl_relaxed(ng + 0x2a008),
+					 readl_relaxed(ng + 0x2b00c));
+			iounmap(ng);
+		}
+	}
+
 	ret = clk_bulk_prepare_enable(qmp->num_clks, qmp->clks);
 	if (ret)
 		goto err_assert_reset;
