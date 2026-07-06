@@ -916,6 +916,7 @@
 			#size-cells = <2>;
 			iommus = <&apps_smmu_0 0x15a3 0x0>;
 			ranges;
+			firmware-name = "qcom/sa8797p/qupv3fw.elf";
 
 			i2c14: i2c@880000 {
 				compatible = "qcom,geni-i2c";
@@ -1107,6 +1108,7 @@
 			#size-cells = <2>;
 			iommus = <&apps_smmu_2 0x1003 0x0>;
 			ranges;
+			firmware-name = "qcom/sa8797p/qupv3fw.elf";
 
 			i2c0: i2c@980000 {
 				compatible = "qcom,geni-i2c";
@@ -1272,6 +1274,7 @@
 			#size-cells = <2>;
 			iommus = <&apps_smmu_2 0x1043 0x0>;
 			ranges;
+			firmware-name = "qcom/sa8797p/qupv3fw.elf";
 
 			i2c7: i2c@a80000 {
 				compatible = "qcom,geni-i2c";
