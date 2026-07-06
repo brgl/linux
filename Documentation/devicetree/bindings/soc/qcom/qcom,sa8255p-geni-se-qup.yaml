@@ -37,6 +37,10 @@ properties:
 
   ranges: true
 
+  firmware-name:
+    maxItems: 1
+    description: Specify the name of the QUP firmware to load.
+
   iommus:
     maxItems: 1
 
