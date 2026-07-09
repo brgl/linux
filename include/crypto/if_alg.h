@@ -250,9 +250,7 @@ int af_alg_get_rsgl(struct sock *sk, struct msghdr *msg, int flags,
  * In additions to the motivations there, this API is exposed to userspace
  * that might not be fully trusted.
  */
-#define AF_ALG_CRYPTOAPI_MASK                             \
-	(CRYPTO_ALG_ASYNC | CRYPTO_ALG_ALLOCATES_MEMORY | \
-	 CRYPTO_ALG_KERN_DRIVER_ONLY)
+#define AF_ALG_CRYPTOAPI_MASK	0
 
 
 #endif	/* _CRYPTO_IF_ALG_H */
