@@ -707,7 +707,9 @@ EXPORT_SYMBOL_GPL(platform_device_add_data);
  *
  * Assign an OF node to this platform device. Internally keep track of the
  * reference count. Devices created with platform_device_alloc() must use this
- * function instead of assigning the node manually.
+ * function instead of assigning the node manually. This function must not be
+ * called for a platform device that already has a software node as its primary
+ * firmware node assigned.
  */
 void platform_device_set_of_node(struct platform_device *pdev,
 				 struct device_node *np)
@@ -723,11 +725,20 @@ EXPORT_SYMBOL_GPL(platform_device_set_of_node);
  *
  * Assign a firmware node to this platform device. Internally keep track of the
  * reference count. Devices created with platform_device_alloc() must use this
- * function instead of assigning the node manually.
+ * function instead of assigning the node manually. This function must not be
+ * called for a platform device that already has a software node as its primary
+ * firmware node assigned.
  */
 void platform_device_set_fwnode(struct platform_device *pdev,
 				struct fwnode_handle *fwnode)
 {
+	/*
+	 * If we call this function for a platform device whose primary
+	 * firmware node is a software node, we'll never end up calling the
+	 * symmetric software_node_notify_remove(). There are no users for this
+	 * right now in the tree so just disallow it.
+	 */
+	WARN_ON(is_software_node(dev_fwnode(&pdev->dev)));
 	fwnode_handle_put(pdev->dev.fwnode);
 	device_set_node(&pdev->dev, fwnode_handle_get(fwnode));
 }
