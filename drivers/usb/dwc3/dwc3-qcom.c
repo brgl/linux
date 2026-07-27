@@ -42,6 +42,20 @@
 #define SDM845_QSCRATCH_SIZE			0x400
 #define SDM845_DWC3_CORE_SIZE			0xcd00
 
+/**
+ * struct dwc3_qcom_data - per-compatible quirks
+ * @defer_utmi_clk_sel: on this platform the QSCRATCH register interface is
+ *	clocked by the eUSB2 PHY's UTMI clock, so the select-utmi-as-pipe-clk
+ *	configuration must be written only after the PHY has been initialized.
+ */
+struct dwc3_qcom_data {
+	bool defer_utmi_clk_sel;
+};
+
+static const struct dwc3_qcom_data nord_data = {
+	.defer_utmi_clk_sel = true,
+};
+
 /* Interconnect path bandwidths in MBps */
 #define USB_MEMORY_AVG_HS_BW MBps_to_icc(240)
 #define USB_MEMORY_PEAK_HS_BW MBps_to_icc(700)
@@ -602,9 +616,22 @@ static void dwc3_qcom_run_stop_notifier(struct dwc3 *dwc, bool is_on)
 	pm_runtime_mark_last_busy(qcom->dev);
 }
 
+static void dwc3_qcom_post_phy_init(struct dwc3 *dwc)
+{
+	struct dwc3_qcom *qcom = to_dwc3_qcom(dwc);
+
+	/*
+	 * The QSCRATCH register interface is clocked by the HS PHY's UTMI
+	 * clock, which only runs once the PHY has been initialized. Select the
+	 * UTMI clock as pipe clock now, before the core touches its registers.
+	 */
+	dwc3_qcom_select_utmi_clk(qcom);
+}
+
 static struct dwc3_glue_ops dwc3_qcom_glue_ops = {
 	.pre_set_role	= dwc3_qcom_set_role_notifier,
 	.pre_run_stop	= dwc3_qcom_run_stop_notifier,
+	.post_phy_init	= dwc3_qcom_post_phy_init,
 };
 
 static int dwc3_qcom_probe(struct platform_device *pdev)
@@ -614,6 +641,7 @@ static int dwc3_qcom_probe(struct platform_device *pdev)
 	struct dwc3_qcom	*qcom;
 	struct resource		res;
 	struct resource		*r;
+	const struct dwc3_qcom_data *data;
 	int			ret;
 	bool			ignore_pipe_clk;
 	bool			wakeup_source;
@@ -623,6 +651,7 @@ static int dwc3_qcom_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	qcom->dev = &pdev->dev;
+	data = of_device_get_match_data(dev);
 
 	qcom->resets = devm_reset_control_array_get_optional_exclusive(dev);
 	if (IS_ERR(qcom->resets)) {
@@ -687,7 +716,7 @@ static int dwc3_qcom_probe(struct platform_device *pdev)
 	 */
 	ignore_pipe_clk = device_property_read_bool(dev,
 				"qcom,select-utmi-as-pipe-clk");
-	if (ignore_pipe_clk)
+	if (ignore_pipe_clk && !(data && data->defer_utmi_clk_sel))
 		dwc3_qcom_select_utmi_clk(qcom);
 
 	qcom->mode = usb_get_dr_mode(dev);
@@ -711,6 +740,8 @@ static int dwc3_qcom_probe(struct platform_device *pdev)
 	probe_data.dwc = &qcom->dwc;
 	probe_data.res = &res;
 	probe_data.ignore_clocks_and_resets = true;
+	probe_data.early_phy_init = ignore_pipe_clk &&
+				    data && data->defer_utmi_clk_sel;
 	probe_data.properties = DWC3_DEFAULT_PROPERTIES;
 	ret = dwc3_core_probe(&probe_data);
 	if (ret)  {
@@ -846,7 +877,7 @@ static const struct dev_pm_ops dwc3_qcom_dev_pm_ops = {
 };
 
 static const struct of_device_id dwc3_qcom_of_match[] = {
-	{ .compatible = "qcom,nord-dwc3" },
+	{ .compatible = "qcom,nord-dwc3", .data = &nord_data },
 	{ .compatible = "qcom,snps-dwc3" },
 	{ }
 };
