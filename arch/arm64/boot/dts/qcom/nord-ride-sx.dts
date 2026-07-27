@@ -602,3 +602,32 @@
 
 	status = "okay";
 };
+
+/*
+ * Only usb_1 is enabled for now. usb_0 shares its Type-C connector's CC lines
+ * with usb_1 through a single FUSB15201 port controller (U15); until that
+ * shared-PD topology and the orientation handling are described, bringing up
+ * both connectors would be guesswork. usb_2 is blocked on the shared USB20
+ * block reset - see nord-embedded.dtsi.
+ */
+&usb_1 {
+	dr_mode = "host";
+
+	status = "okay";
+};
+
+&usb_1_hsphy {
+	vdd-supply = <&vreg_l1e_0p9>;
+	vdda12-supply = <&vreg_l2i_1p2>;
+
+	phys = <&usb1_repeater>;
+
+	status = "okay";
+};
+
+&usb_1_qmpphy {
+	vdda-phy-supply = <&vreg_l1h_0p9>;
+	vdda-pll-supply = <&vreg_l2h_1p2>;
+
+	status = "okay";
+};
