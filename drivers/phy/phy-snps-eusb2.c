@@ -585,10 +585,21 @@ static int snps_eusb2_hsphy_probe(struct platform_device *pdev)
 		return dev_err_probe(dev, ret,
 				     "failed to get regulator supplies\n");
 
-	phy->repeater = devm_of_phy_optional_get(dev, np, NULL);
-	if (IS_ERR(phy->repeater))
-		return dev_err_probe(dev, PTR_ERR(phy->repeater),
-				     "failed to get repeater\n");
+	/*
+	 * devm_of_phy_optional_get() returns NULL both when the node has no
+	 * 'phys' property and when it has one but the provider has not
+	 * registered yet. In the latter case we would silently probe without
+	 * a repeater and never call phy_init() on it. Only treat the repeater
+	 * as optional when the DT node genuinely does not describe one.
+	 */
+	if (of_property_present(np, "phys")) {
+		phy->repeater = devm_of_phy_get(dev, np, NULL);
+		if (IS_ERR(phy->repeater))
+			return dev_err_probe(dev, PTR_ERR(phy->repeater),
+					     "failed to get repeater\n");
+	} else {
+		phy->repeater = NULL;
+	}
 
 	generic_phy = devm_phy_create(dev, NULL, &snps_eusb2_hsphy_ops);
 	if (IS_ERR(generic_phy)) {
