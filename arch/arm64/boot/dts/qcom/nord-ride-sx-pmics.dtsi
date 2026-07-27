@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/*
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ */
+
+#include <dt-bindings/spmi/spmi.h>
+
+&spmi_bus {
+	/*
+	 * PMIC H - "UPMH" satellite (CD90-73961-1), SPMI USID 0x7, bus E0.
+	 * GPIO3 is USB2_PD_PWR_EN_1P8, the enable for the TPS2559 (U18) VBUS
+	 * load switch on the JUSB2 Type-A connector.
+	 */
+	pmic_h: pmic@7 {
+		compatible = "qcom,pmm8654au", "qcom,spmi-pmic";
+		reg = <0x7 SPMI_USID>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		pmic_h_gpios: gpio@8800 {
+			compatible = "qcom,pmm8654au-gpio",
+				     "qcom,spmi-gpio";
+			reg = <0x8800>;
+			gpio-controller;
+			gpio-ranges = <&pmic_h_gpios 0 0 12>;
+			#gpio-cells = <2>;
+			interrupt-controller;
+			#interrupt-cells = <2>;
+		};
+	};
+
+	/*
+	 * PMIC L - "UPML" satellite (CD90-73961-1), SPMI USID 0xb, bus E0.
+	 * GPIO3 is EUSB2_REPEATER_RST_1P8_N, the reset for the PTN3222 eUSB2
+	 * repeater (U14) in front of usb_2. This PMIC's LDO3 also supplies
+	 * that repeater's 1.8V rail (vreg_l3l_1p8 / VDD_EUSB_1P8).
+	 */
+	pmic_l: pmic@b {
+		compatible = "qcom,pmm8654au", "qcom,spmi-pmic";
+		reg = <0xb SPMI_USID>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		pmic_l_gpios: gpio@8800 {
+			compatible = "qcom,pmm8654au-gpio",
+				     "qcom,spmi-gpio";
+			reg = <0x8800>;
+			gpio-controller;
+			gpio-ranges = <&pmic_l_gpios 0 0 12>;
+			#gpio-cells = <2>;
+			interrupt-controller;
+			#interrupt-cells = <2>;
+		};
+	};
+};
