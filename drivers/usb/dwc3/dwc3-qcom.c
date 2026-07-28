@@ -635,10 +635,21 @@ static int dwc3_qcom_probe(struct platform_device *pdev)
 		return dev_err_probe(dev, ret, "failed to get clocks\n");
 	qcom->num_clocks = ret;
 
+	ret = clk_bulk_prepare_enable(qcom->num_clocks, qcom->clks);
+	if (ret < 0)
+		return ret;
+
+	/*
+	 * Assert and deassert the block reset only after the clocks are
+	 * running: the clock-domain synchronizers inside the USB tile need
+	 * their clocks present for the reset release to propagate. A reset
+	 * deasserted with the clocks still gated can leave the controller
+	 * register interface unresponsive.
+	 */
 	ret = reset_control_assert(qcom->resets);
 	if (ret) {
 		dev_err(&pdev->dev, "failed to assert resets, err=%d\n", ret);
-		return ret;
+		goto clk_disable;
 	}
 
 	usleep_range(10, 1000);
@@ -646,12 +657,8 @@ static int dwc3_qcom_probe(struct platform_device *pdev)
 	ret = reset_control_deassert(qcom->resets);
 	if (ret) {
 		dev_err(&pdev->dev, "failed to deassert resets, err=%d\n", ret);
-		return ret;
+		goto clk_disable;
 	}
-
-	ret = clk_bulk_prepare_enable(qcom->num_clocks, qcom->clks);
-	if (ret < 0)
-		return ret;
 
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (!r) {
