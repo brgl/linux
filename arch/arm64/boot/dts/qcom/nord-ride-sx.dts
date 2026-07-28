@@ -536,6 +536,10 @@
 		compatible = "nxp,ptn3222";
 		reg = <0x43>;
 		#phy-cells = <0>;
+
+		vdd1v8-supply = <&vreg_l3l_1p8>;
+
+		reset-gpios = <&pmic_i_gpios 9 GPIO_ACTIVE_LOW>;
 	};
 
 	usb1_repeater: redriver@4f {
@@ -692,11 +696,39 @@
 };
 
 /*
- * usb_0 stays disabled: it shares its Type-C connector's CC lines with usb_1
- * through a single FUSB15201 port controller (U15), and that controller also
- * drives both connectors' VBUS enables. Until the shared-PD topology and the
- * orientation handling are described, bringing up JUSB0 would be guesswork.
+ * usb_0's Type-C connector shares its CC lines with usb_1 through a single
+ * FUSB15201 port controller (U15), which also drives both connectors' VBUS
+ * enables. No shared-PD/orientation DT model exists yet, and VBUS0_EN is an
+ * FUSB15201 GPIO output that Linux can't drive directly (FUSB is dead on
+ * I2C as of the last bench check). Despite that, dr_mode = "host" works:
+ * VBUS0 turns out to already be on by some other means, same as VBUS1 -- a
+ * real USB mass-storage device plugged into JUSB0 enumerates, mounts, and
+ * passes read/write, hardware-confirmed. Proper Type-C PD/orientation
+ * support is still a separate, unresolved problem (see the FUSB15201/CC
+ * investigation), so treat this as host-only, non-DRP for now.
  */
+&usb_0 {
+	dr_mode = "host";
+
+	status = "okay";
+};
+
+&usb_0_hsphy {
+	vdd-supply = <&vreg_l1e_0p9>;
+	vdda12-supply = <&vreg_l2i_1p2>;
+
+	phys = <&usb0_repeater>;
+
+	status = "okay";
+};
+
+&usb_0_qmpphy {
+	vdda-phy-supply = <&vreg_l1h_0p9>;
+	vdda-pll-supply = <&vreg_l2h_1p2>;
+
+	status = "okay";
+};
+
 &usb_1 {
 	dr_mode = "host";
 
