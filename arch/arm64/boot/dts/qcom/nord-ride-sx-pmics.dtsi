@@ -30,6 +30,29 @@
 	};
 
 	/*
+	 * PMIC I - "UPMI" satellite (CD90-73961-1), SPMI USID 0x8, bus E0.
+	 * GPIO10 is EUSB1_REPEATER_RST_1P8_N, the reset for the PTN3222 eUSB2
+	 * repeater (U13) in front of usb_1.
+	 */
+	pmic_i: pmic@8 {
+		compatible = "qcom,pmm8654au", "qcom,spmi-pmic";
+		reg = <0x8 SPMI_USID>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		pmic_i_gpios: gpio@8800 {
+			compatible = "qcom,pmm8654au-gpio",
+				     "qcom,spmi-gpio";
+			reg = <0x8800>;
+			gpio-controller;
+			gpio-ranges = <&pmic_i_gpios 0 0 12>;
+			#gpio-cells = <2>;
+			interrupt-controller;
+			#interrupt-cells = <2>;
+		};
+	};
+
+	/*
 	 * PMIC L - "UPML" satellite (CD90-73961-1), SPMI USID 0xb, bus E0.
 	 * GPIO3 is EUSB2_REPEATER_RST_1P8_N, the reset for the PTN3222 eUSB2
 	 * repeater (U14) in front of usb_2. This PMIC's LDO3 also supplies
