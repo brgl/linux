@@ -43,6 +43,64 @@
 	status = "okay";
 };
 
+&ethernet0 {
+	clocks = <&segcc SE_GCC_EMAC0_AXI_CLK>,
+		 <&segcc SE_GCC_EMAC0_CNOC_APB_CLK>,
+		 <&segcc SE_GCC_EMAC0_RGMII_CLK>,
+		 <&segcc SE_GCC_EMAC0_PTP_CLK>,
+		 <&segcc SE_GCC_EMAC0_PHY_AUX_CLK>;
+	clock-names = "stmmaceth",
+		      "apb_pclk",
+		      "pclk",
+		      "ptp_ref",
+		      "phyaux";
+
+	assigned-clocks = <&segcc SE_GCC_EMAC0_PTP_CLK>,
+			  <&segcc SE_GCC_EMAC0_RGMII_CLK>;
+	assigned-clock-rates = <125000000>, <250000000>;
+
+	power-domains = <&segcc SE_GCC_EMAC0_GDSC>;
+	resets = <&segcc SE_GCC_EMAC0_BCR>;
+
+	interconnects = <&hscnoc MASTER_APPSS_PROC QCOM_ICC_TAG_ALWAYS
+			 &config_noc SLAVE_PS_ETH_0 QCOM_ICC_TAG_ALWAYS>,
+			<&aggre2_noc_tile MASTER_EMAC_0 QCOM_ICC_TAG_ALWAYS
+			 &mc_virt SLAVE_EBI1 QCOM_ICC_TAG_ALWAYS>;
+	interconnect-names = "cpu-mac", "mac-mem";
+
+	phys = <&serdes0>;
+	phy-names = "serdes";
+};
+
+&ethernet1 {
+	clocks = <&segcc SE_GCC_EMAC1_AXI_CLK>,
+		 <&segcc SE_GCC_EMAC1_CNOC_APB_CLK>,
+		 <&segcc SE_GCC_EMAC1_RGMII_CLK>,
+		 <&segcc SE_GCC_EMAC1_PTP_CLK>,
+		 <&segcc SE_GCC_EMAC1_PHY_AUX_CLK>;
+	clock-names = "stmmaceth",
+		      "apb_pclk",
+		      "pclk",
+		      "ptp_ref",
+		      "phyaux";
+
+	assigned-clocks = <&segcc SE_GCC_EMAC1_PTP_CLK>,
+			  <&segcc SE_GCC_EMAC1_RGMII_CLK>;
+	assigned-clock-rates = <125000000>, <250000000>;
+
+	power-domains = <&segcc SE_GCC_EMAC1_GDSC>;
+	resets = <&segcc SE_GCC_EMAC1_BCR>;
+
+	interconnects = <&hscnoc MASTER_APPSS_PROC QCOM_ICC_TAG_ALWAYS
+			 &config_noc SLAVE_PS_ETH_1 QCOM_ICC_TAG_ALWAYS>,
+			<&aggre2_noc_tile MASTER_EMAC_1 QCOM_ICC_TAG_ALWAYS
+			 &mc_virt SLAVE_EBI1 QCOM_ICC_TAG_ALWAYS>;
+	interconnect-names = "cpu-mac", "mac-mem";
+
+	phys = <&serdes1>;
+	phy-names = "serdes";
+};
+
 &i2c0 {
 	clocks = <&segcc SE_GCC_QUPV3_WRAP0_S0_CLK>;
 	clock-names = "se";
@@ -901,6 +959,26 @@
 
 		resets = <&negcc NE_GCC_QUSB2PHY_SEC_BCR>;
 
+		status = "disabled";
+	};
+
+	serdes0: phy@88f8000 {
+		compatible = "qcom,nord-dwmac-sgmii-phy",
+			     "qcom,sa8775p-dwmac-sgmii-phy";
+		reg = <0x0 0x088f8000 0x0 0xe10>;
+		clocks = <&tcsrcc TCSR_UX_SGMII_0_CLKREF_EN>;
+		clock-names = "sgmi_ref";
+		#phy-cells = <0>;
+		status = "disabled";
+	};
+
+	serdes1: phy@88fc000 {
+		compatible = "qcom,nord-dwmac-sgmii-phy",
+			     "qcom,sa8775p-dwmac-sgmii-phy";
+		reg = <0x0 0x088fc000 0x0 0xe10>;
+		clocks = <&tcsrcc TCSR_UX_SGMII_1_CLKREF_EN>;
+		clock-names = "sgmi_ref";
+		#phy-cells = <0>;
 		status = "disabled";
 	};
 
