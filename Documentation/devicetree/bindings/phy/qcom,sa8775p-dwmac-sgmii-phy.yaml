@@ -19,6 +19,7 @@ properties:
       - items:
           - enum:
               - qcom,qcs8300-dwmac-sgmii-phy
+              - qcom,nord-dwmac-sgmii-phy
           - const: qcom,sa8775p-dwmac-sgmii-phy
       - const: qcom,sa8775p-dwmac-sgmii-phy
 
