@@ -1814,7 +1814,7 @@ static struct gdsc mdss_0_disp_cc_mdss_core_gdsc = {
 		.name = "mdss_0_disp_cc_mdss_core_gdsc",
 	},
 	.pwrsts = PWRSTS_OFF_ON,
-	.flags = HW_CTRL_TRIGGER | POLL_CFG_GDSCR | RETAIN_FF_ENABLE,
+	.flags = HW_CTRL | POLL_CFG_GDSCR | RETAIN_FF_ENABLE,
 };
 
 static struct gdsc mdss_0_disp_cc_mdss_core_int2_gdsc = {
@@ -1826,7 +1826,7 @@ static struct gdsc mdss_0_disp_cc_mdss_core_int2_gdsc = {
 		.name = "mdss_0_disp_cc_mdss_core_int2_gdsc",
 	},
 	.pwrsts = PWRSTS_OFF_ON,
-	.flags = HW_CTRL_TRIGGER | POLL_CFG_GDSCR | RETAIN_FF_ENABLE,
+	.flags = HW_CTRL | POLL_CFG_GDSCR | RETAIN_FF_ENABLE,
 };
 
 static struct clk_regmap *disp_cc_0_nord_clocks[] = {
