@@ -1732,6 +1732,12 @@
 		drive-strength = <2>;
 		bias-disable;
 	};
+
+	edp0_hot_default: edp0-hot-default-state {
+		pins = "gpio51";
+		function = "edp0_hot";
+		bias-disable;
+	};
 };
 
 &uart0 {
@@ -2293,6 +2299,9 @@
 
 	phys = <&usb_0_qmpphy QMP_USB43DP_DP_PHY>;
 	phy-names = "dp";
+
+	pinctrl-0 = <&edp0_hot_default>;
+	pinctrl-names = "default";
 
 	mdss_dp0_opp_table: opp-table {
 		compatible = "operating-points-v2";
