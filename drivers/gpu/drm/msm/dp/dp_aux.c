@@ -599,6 +599,20 @@ void msm_dp_aux_hpd_enable(struct drm_dp_aux *msm_dp_aux)
 		container_of(msm_dp_aux, struct msm_dp_aux_private, msm_dp_aux);
 	u32 reg;
 
+	/*
+	 * Program the HPD event timers before enabling detection. The
+	 * hardware defaults are far too long: a 100 ms connect and a 100 ms
+	 * disconnect debounce window, against a 2 ms IRQ_HPD pulse window.
+	 * With those values an IRQ_HPD pulse from the sink is wider than the
+	 * disconnect threshold, so the state machine treats it as an unplug
+	 * and falls back from Connected to Connect Pending, never latching a
+	 * stable connection.
+	 */
+	msm_dp_write_aux(aux, REG_DP_DP_HPD_EVENT_TIME_0,
+			 DP_DP_HPD_EVENT_TIME_0_VAL);
+	msm_dp_write_aux(aux, REG_DP_DP_HPD_EVENT_TIME_1,
+			 DP_DP_HPD_EVENT_TIME_1_VAL);
+
 	/* Configure REFTIMER and enable it */
 	reg = msm_dp_read_aux(aux, REG_DP_DP_HPD_REFTIMER);
 	reg |= DP_DP_HPD_REFTIMER_ENABLE;
