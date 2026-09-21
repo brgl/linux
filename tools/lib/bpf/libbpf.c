@@ -1223,6 +1223,12 @@ static int bpf_map__init_kern_struct_ops(struct bpf_map *map)
 		const char *mname;
 
 		mname = btf__name_by_offset(btf, member->name_off);
+		if (btf_member_bitfield_size(type, i)) {
+			pr_warn("struct_ops init_kern %s: local bitfield %s is not supported\n",
+				map->name, mname);
+			return -ENOTSUP;
+		}
+
 		moff = member->offset / 8;
 		mdata = data + moff;
 		msize = btf__resolve_size(btf, member->type);
@@ -1259,8 +1265,7 @@ static int bpf_map__init_kern_struct_ops(struct bpf_map *map)
 		}
 
 		kern_member_idx = kern_member - btf_members(kern_type);
-		if (btf_member_bitfield_size(type, i) ||
-		    btf_member_bitfield_size(kern_type, kern_member_idx)) {
+		if (btf_member_bitfield_size(kern_type, kern_member_idx)) {
 			pr_warn("struct_ops init_kern %s: bitfield %s is not supported\n",
 				map->name, mname);
 			return -ENOTSUP;
@@ -3018,20 +3023,8 @@ static int bpf_object__init_user_btf_map(struct bpf_object *obj,
 }
 
 static int init_arena_map_data(struct bpf_object *obj, struct bpf_map *map,
-			       const char *sec_name, int sec_idx,
 			       void *data, size_t data_sz)
 {
-	const long page_sz = sysconf(_SC_PAGE_SIZE);
-	const size_t data_alloc_sz = roundup(data_sz, page_sz);
-	size_t mmap_sz;
-
-	mmap_sz = bpf_map_mmap_sz(map);
-	if (data_alloc_sz > mmap_sz) {
-		pr_warn("elf: sec '%s': declared ARENA map size (%zu) is too small to hold global __arena variables of size %zu\n",
-			sec_name, mmap_sz, data_sz);
-		return -E2BIG;
-	}
-
 	obj->arena_data = malloc(data_sz);
 	if (!obj->arena_data)
 		return -ENOMEM;
@@ -3107,8 +3100,7 @@ static int bpf_object__init_user_btf_maps(struct bpf_object *obj, bool strict,
 		obj->arena_map_idx = i;
 
 		if (obj->efile.arena_data) {
-			err = init_arena_map_data(obj, map, ARENA_SEC, obj->efile.arena_data_shndx,
-						  obj->efile.arena_data->d_buf,
+			err = init_arena_map_data(obj, map, obj->efile.arena_data->d_buf,
 						  obj->efile.arena_data->d_size);
 			if (err)
 				return err;
@@ -7496,12 +7488,20 @@ static int bpf_object__relocate(struct bpf_object *obj, const char *targ_btf_pat
 		bpf_object__sort_relos(obj);
 	}
 
-	/* place globals at the end of the arena (if supported) */
-	if (obj->arena_map_idx >= 0 && kernel_supports(obj, FEAT_LDIMM64_FULL_RANGE_OFF)) {
+	if (obj->arena_map_idx >= 0) {
 		struct bpf_map *arena_map = &obj->maps[obj->arena_map_idx];
+		size_t data_sz = roundup(obj->arena_data_sz, sysconf(_SC_PAGE_SIZE));
+		size_t mmap_sz = bpf_map_mmap_sz(arena_map);
 
-		obj->arena_data_off = bpf_map_mmap_sz(arena_map) -
-				      roundup(obj->arena_data_sz, sysconf(_SC_PAGE_SIZE));
+		if (data_sz > mmap_sz) {
+			pr_warn("map '%s': declared ARENA map size (%zu) is too small to hold global __arena variables of size %zu\n",
+				arena_map->name, mmap_sz, obj->arena_data_sz);
+			return -E2BIG;
+		}
+
+		/* place globals at the end of the arena (if supported) */
+		if (kernel_supports(obj, FEAT_LDIMM64_FULL_RANGE_OFF))
+			obj->arena_data_off = mmap_sz - data_sz;
 	}
 
 	/* Before relocating calls pre-process relocations and mark
@@ -7886,6 +7886,19 @@ static int tracing_multi_mod_fd(struct bpf_program *prog, int *btf_obj_fd)
 	return 0;
 }
 
+static int libbpf_setup_prog_flags(struct bpf_program *prog, long cookie)
+{
+	enum sec_def_flags def = cookie;
+
+	if (def & SEC_SLEEPABLE)
+		prog->prog_flags |= BPF_F_SLEEPABLE;
+
+	if (def & SEC_XDP_FRAGS)
+		prog->prog_flags |= BPF_F_XDP_HAS_FRAGS;
+
+	return 0;
+}
+
 /* this is called as prog->sec_def->prog_prepare_load_fn for libbpf-supported sec_defs */
 static int libbpf_prepare_prog_load(struct bpf_program *prog,
 				    struct bpf_prog_load_opts *opts, long cookie)
@@ -7895,12 +7908,6 @@ static int libbpf_prepare_prog_load(struct bpf_program *prog,
 	/* old kernels might not support specifying expected_attach_type */
 	if ((def & SEC_EXP_ATTACH_OPT) && !kernel_supports(prog->obj, FEAT_EXP_ATTACH_TYPE))
 		opts->expected_attach_type = 0;
-
-	if (def & SEC_SLEEPABLE)
-		opts->prog_flags |= BPF_F_SLEEPABLE;
-
-	if (prog->type == BPF_PROG_TYPE_XDP && (def & SEC_XDP_FRAGS))
-		opts->prog_flags |= BPF_F_XDP_HAS_FRAGS;
 
 	/* special check for usdt to use uprobe_multi link */
 	if ((def & SEC_USDT) && kernel_supports(prog->obj, FEAT_UPROBE_MULTI_LINK)) {
@@ -9144,7 +9151,8 @@ static int bpf_object_load(struct bpf_object *obj, int extra_log_level, const ch
 	 * permit cross-endian creation of "light skeleton".
 	 */
 	if (obj->gen_loader) {
-		bpf_gen__init(obj->gen_loader, extra_log_level, obj->nr_programs, obj->nr_maps);
+		bpf_gen__init(obj->gen_loader, obj->log_level | extra_log_level,
+			      obj->nr_programs, obj->nr_maps);
 	} else if (!is_native_endianness(obj)) {
 		pr_warn("object '%s': loading non-native endianness is unsupported\n", obj->name);
 		return libbpf_err(-LIBBPF_ERRNO__ENDIAN);
@@ -9938,6 +9946,16 @@ int bpf_program__set_flags(struct bpf_program *prog, __u32 flags)
 	return 0;
 }
 
+int bpf_program__add_flags(struct bpf_program *prog, __u32 flags)
+{
+	return bpf_program__set_flags(prog, prog->prog_flags | flags);
+}
+
+int bpf_program__clear_flags(struct bpf_program *prog, __u32 flags)
+{
+	return bpf_program__set_flags(prog, prog->prog_flags & ~flags);
+}
+
 __u32 bpf_program__log_level(const struct bpf_program *prog)
 {
 	return prog->log_level;
@@ -9960,9 +9978,9 @@ const char *bpf_program__log_buf(const struct bpf_program *prog, size_t *log_siz
 
 int bpf_program__set_log_buf(struct bpf_program *prog, char *log_buf, size_t log_size)
 {
-	if (log_size && !log_buf)
+	if (!!log_buf != !!log_size)
 		return libbpf_err(-EINVAL);
-	if (prog->log_size > UINT_MAX)
+	if (log_size > UINT_MAX)
 		return libbpf_err(-EINVAL);
 	if (prog->obj->state >= OBJ_LOADED)
 		return libbpf_err(-EBUSY);
@@ -10106,6 +10124,7 @@ int bpf_program__clone(struct bpf_program *prog, const struct bpf_prog_load_opts
 	.prog_type = BPF_PROG_TYPE_##ptype,				    \
 	.expected_attach_type = atype,					    \
 	.cookie = (long)(flags),					    \
+	.prog_setup_fn = libbpf_setup_prog_flags,			    \
 	.prog_prepare_load_fn = libbpf_prepare_prog_load,		    \
 	__VA_ARGS__							    \
 }
@@ -11745,7 +11764,7 @@ static int perf_event_open_probe(bool uprobe, bool retprobe, const char *name,
 				errstr(bit));
 			return bit;
 		}
-		attr.config |= 1 << bit;
+		attr.config |= 1ULL << bit;
 	}
 	attr.size = attr_sz;
 	attr.type = type;
@@ -14151,6 +14170,70 @@ struct bpf_link *bpf_map__attach_struct_ops(const struct bpf_map *map)
 	}
 
 	fd = bpf_link_create(map->fd, 0, BPF_STRUCT_OPS, NULL);
+	if (fd < 0) {
+		free(link);
+		return libbpf_err_ptr(fd);
+	}
+
+	link->link.fd = fd;
+	link->map_fd = map->fd;
+
+	return &link->link;
+}
+
+struct bpf_link *bpf_map__attach_cgroup_opts(const struct bpf_map *map, int cgroup_fd,
+					     const struct bpf_cgroup_opts *opts)
+{
+	LIBBPF_OPTS(bpf_link_create_opts, link_create_opts);
+	struct bpf_link_struct_ops *link;
+	__u32 relative_id, zero = 0;
+	int err, fd, relative_fd;
+
+	if (!OPTS_VALID(opts, bpf_cgroup_opts))
+		return libbpf_err_ptr(-EINVAL);
+
+	if (!bpf_map__is_struct_ops(map)) {
+		pr_warn("map '%s': can't attach non-struct_ops map\n", map->name);
+		return libbpf_err_ptr(-EINVAL);
+	}
+
+	if (map->fd < 0) {
+		pr_warn("map '%s': can't attach BPF map without FD (was it created?)\n", map->name);
+		return libbpf_err_ptr(-EINVAL);
+	}
+
+	if (!(map->def.map_flags & BPF_F_LINK)) {
+		pr_warn("map '%s': can't attach to cgroup without BPF_F_LINK\n", map->name);
+		return libbpf_err_ptr(-EINVAL);
+	}
+
+	relative_id = OPTS_GET(opts, relative_id, 0);
+	relative_fd = OPTS_GET(opts, relative_fd, 0);
+
+	if (relative_fd && relative_id) {
+		pr_warn("map '%s': relative_fd and relative_id cannot be set at the same time\n",
+			map->name);
+		return libbpf_err_ptr(-EINVAL);
+	}
+
+	link_create_opts.cgroup.expected_revision = OPTS_GET(opts, expected_revision, 0);
+	link_create_opts.cgroup.relative_fd = relative_fd;
+	link_create_opts.cgroup.relative_id = relative_id;
+	link_create_opts.flags = OPTS_GET(opts, flags, 0);
+
+	link = calloc(1, sizeof(*link));
+	if (!link)
+		return libbpf_err_ptr(-ENOMEM);
+
+	err = bpf_map_update_elem(map->fd, &zero, map->st_ops->kern_vdata, 0);
+	if (err && err != -EBUSY) {
+		free(link);
+		return libbpf_err_ptr(err);
+	}
+
+	link->link.detach = bpf_link__detach_struct_ops;
+
+	fd = bpf_link_create(map->fd, cgroup_fd, BPF_STRUCT_OPS, &link_create_opts);
 	if (fd < 0) {
 		free(link);
 		return libbpf_err_ptr(fd);
