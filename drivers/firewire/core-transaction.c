@@ -24,6 +24,7 @@
 #include <linux/timer.h>
 #include <linux/types.h>
 #include <linux/workqueue.h>
+#include <kunit/static_stub.h>
 
 #include <asm/byteorder.h>
 
@@ -203,9 +204,7 @@ static void transmit_complete_callback(struct fw_packet *packet,
 	{
 		unsigned int delta;
 
-		// NOTE: This can be without irqsave when we can guarantee that __fw_send_request() for
-		// local destination never runs in any type of IRQ context.
-		scoped_guard(spinlock_irqsave, &card->split_timeout.lock) {
+		scoped_guard(spinlock, &card->split_timeout.lock) {
 			t->split_timeout_cycle =
 				compute_split_timeout_timestamp(card, packet->timestamp) & 0xffff;
 			delta = card->split_timeout.jiffies;
@@ -481,6 +480,9 @@ int fw_run_transaction(struct fw_card *card, int tcode, int destination_id,
 		       int generation, int speed, unsigned long long offset,
 		       void *payload, size_t length)
 {
+	KUNIT_STATIC_STUB_REDIRECT(fw_run_transaction, card, tcode, destination_id, generation,
+				   speed, offset, payload, length);
+
 	struct transaction_callback_data d;
 	struct fw_transaction t;
 
@@ -896,9 +898,7 @@ static struct fw_request *allocate_request(struct fw_card *card,
 		return NULL;
 	kref_init(&request->kref);
 
-	// NOTE: This can be without irqsave when we can guarantee that __fw_send_request() for
-	// local destination never runs in any type of IRQ context.
-	scoped_guard(spinlock_irqsave, &card->split_timeout.lock)
+	scoped_guard(spinlock, &card->split_timeout.lock)
 		request->response.timestamp = compute_split_timeout_timestamp(card, p->timestamp);
 
 	request->response.speed = p->speed;
@@ -1256,9 +1256,7 @@ static void handle_topology_map(struct fw_card *card, struct fw_request *request
 
 	start = (offset - topology_map_region.start) / 4;
 
-	// NOTE: This can be without irqsave when we can guarantee that fw_send_request() for local
-	// destination never runs in any type of IRQ context.
-	scoped_guard(spinlock_irqsave, &card->topology_map.lock)
+	scoped_guard(spinlock, &card->topology_map.lock)
 		memcpy(payload, &card->topology_map.buffer[start], length);
 
 	fw_send_response(card, request, RCODE_COMPLETE);
@@ -1336,10 +1334,7 @@ static void handle_registers(struct fw_card *card, struct fw_request *request,
 		if (tcode == TCODE_READ_QUADLET_REQUEST) {
 			*data = cpu_to_be32(card->split_timeout.hi);
 		} else if (tcode == TCODE_WRITE_QUADLET_REQUEST) {
-			// NOTE: This can be without irqsave when we can guarantee that
-			// __fw_send_request() for local destination never runs in any type of IRQ
-			// context.
-			scoped_guard(spinlock_irqsave, &card->split_timeout.lock) {
+			scoped_guard(spinlock, &card->split_timeout.lock) {
 				card->split_timeout.hi = be32_to_cpu(*data) & 7;
 				update_split_timeout(card);
 			}
@@ -1352,10 +1347,7 @@ static void handle_registers(struct fw_card *card, struct fw_request *request,
 		if (tcode == TCODE_READ_QUADLET_REQUEST) {
 			*data = cpu_to_be32(card->split_timeout.lo);
 		} else if (tcode == TCODE_WRITE_QUADLET_REQUEST) {
-			// NOTE: This can be without irqsave when we can guarantee that
-			// __fw_send_request() for local destination never runs in any type of IRQ
-			// context.
-			scoped_guard(spinlock_irqsave, &card->split_timeout.lock) {
+			scoped_guard(spinlock, &card->split_timeout.lock) {
 				card->split_timeout.lo = be32_to_cpu(*data) & 0xfff80000;
 				update_split_timeout(card);
 			}
