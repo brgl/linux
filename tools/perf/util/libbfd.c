@@ -210,7 +210,7 @@ static int inline_list__append_dso_a2l(struct dso *dso,
 				       struct inline_node *node,
 				       struct symbol *sym)
 {
-	struct a2l_data *a2l = dso__a2l(dso);
+	struct a2l_data *a2l = dso__a2l_libbfd(dso);
 	struct symbol *inline_sym = new_inline_sym(dso, sym, a2l->funcname);
 	char *srcline = NULL;
 
@@ -226,17 +226,22 @@ int libbfd__addr2line(const char *dso_name, u64 addr,
 		      struct symbol *sym)
 {
 	int ret = 0;
-	struct a2l_data *a2l = dso__a2l(dso);
+	struct a2l_data *a2l;
+
+	mutex_lock(dso__lock(dso));
+	dso_name = dso__symsrc_filename(dso) ?: dso_name;
+	a2l = dso__a2l_libbfd(dso);
 
 	if (!a2l) {
 		a2l = addr2line_init(dso_name);
-		dso__set_a2l(dso, a2l);
+		dso__set_a2l_libbfd(dso, a2l);
 	}
 
 	if (a2l == NULL) {
 		if (!symbol_conf.addr2line_disable_warn)
 			pr_warning("addr2line_init failed for %s\n", dso_name);
-		return 0;
+		ret = -1;
+		goto out;
 	}
 
 	a2l->addr = addr;
@@ -244,14 +249,19 @@ int libbfd__addr2line(const char *dso_name, u64 addr,
 
 	bfd_map_over_sections(a2l->abfd, find_address_in_section, a2l);
 
-	if (!a2l->found)
-		return 0;
+	if (!a2l->found) {
+		ret = 0;
+		goto out;
+	}
 
 	if (unwind_inlines) {
 		int cnt = 0;
 
-		if (node && inline_list__append_dso_a2l(dso, node, sym))
-			return 0;
+		if (node && inline_list__append_dso_a2l(dso, node, sym)) {
+			inline_node__clear_frames(node);
+			ret = 0;
+			goto out;
+		}
 
 		while (bfd_find_inliner_info(a2l->abfd, &a2l->filename,
 					     &a2l->funcname, &a2l->line) &&
@@ -261,35 +271,48 @@ int libbfd__addr2line(const char *dso_name, u64 addr,
 				a2l->filename = NULL;
 
 			if (node != NULL) {
-				if (inline_list__append_dso_a2l(dso, node, sym))
-					return 0;
-				// found at least one inline frame
-				ret = 1;
+				if (inline_list__append_dso_a2l(dso, node, sym)) {
+					inline_node__clear_frames(node);
+					ret = 0;
+					goto out;
+				}
 			}
 		}
 	}
 
 	if (file) {
 		*file = a2l->filename ? strdup(a2l->filename) : NULL;
-		ret = *file ? 1 : 0;
+		if (!*file) {
+			/* Leave ret as 0 so that another addr2line is tried. */
+			goto out;
+		}
 	}
 
 	if (line)
 		*line = a2l->line;
 
+	/*
+	 * The address was found, report success so that the caller doesn't try
+	 * another addr2line implementation that would append the inline frames
+	 * above a second time.
+	 */
+	ret = 1;
+
+out:
+	mutex_unlock(dso__lock(dso));
 	return ret;
 }
 
 void dso__free_a2l_libbfd(struct dso *dso)
 {
-	struct a2l_data *a2l = dso__a2l(dso);
+	struct a2l_data *a2l = dso__a2l_libbfd(dso);
 
 	if (!a2l)
 		return;
 
 	addr2line_cleanup(a2l);
 
-	dso__set_a2l(dso, NULL);
+	dso__set_a2l_libbfd(dso, NULL);
 }
 
 static int bfd_symbols__cmpvalue(const void *a, const void *b)
