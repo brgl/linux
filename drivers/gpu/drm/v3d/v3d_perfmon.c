@@ -305,8 +305,9 @@ static void v3d_perfmon_capture_locked(struct v3d_dev *v3d,
 	v3d_pm_runtime_put(v3d);
 }
 
-void v3d_perfmon_stop_locked(struct v3d_dev *v3d, struct v3d_perfmon *perfmon,
-			     bool capture)
+static void
+v3d_perfmon_stop_locked(struct v3d_dev *v3d, struct v3d_perfmon *perfmon,
+			bool capture)
 {
 	lockdep_assert_held(&v3d->perfmon_state.lock);
 

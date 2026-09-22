@@ -200,12 +200,6 @@ struct v3d_dev {
 	/* Protects bo_stats */
 	struct mutex bo_lock;
 
-	/* Lock taken when resetting the GPU, to keep multiple
-	 * processes from trying to park the scheduler threads and
-	 * reset at once.
-	 */
-	struct mutex reset_lock;
-
 	/* Ordered workqueue shared by every queue's scheduler timeout work.
 	 * V3D reset is global to all queues, so the timeout handlers must not
 	 * run concurrently.
@@ -703,8 +697,6 @@ void v3d_perfmon_put(struct v3d_perfmon *perfmon);
 void v3d_perfmon_start(struct v3d_dev *v3d, struct v3d_perfmon *perfmon);
 void v3d_perfmon_stop(struct v3d_dev *v3d, struct v3d_perfmon *perfmon,
 		      bool capture);
-void v3d_perfmon_stop_locked(struct v3d_dev *v3d, struct v3d_perfmon *perfmon,
-			     bool capture);
 void v3d_perfmon_suspend(struct v3d_dev *v3d);
 void v3d_perfmon_resume(struct v3d_dev *v3d);
 struct v3d_perfmon *v3d_perfmon_find(struct v3d_file_priv *v3d_priv, int id);
