@@ -22,7 +22,6 @@
 #include "linux/magic.h"
 
 #include "vm_util.h"
-#include "hugepage_settings.h"
 
 #define BASE_ADDR ((void *)(1UL << 30))
 static unsigned long hpage_pmd_size;
@@ -122,6 +121,7 @@ static void get_finfo(const char *dir)
 	char buf[1 << 10];
 	char path[PATH_MAX];
 	char *str, *end;
+	int ret;
 
 	finfo.dir = dir;
 	if (stat(finfo.dir, &path_stat))
@@ -142,8 +142,9 @@ static void get_finfo(const char *dir)
 		     major(path_stat.st_dev), minor(path_stat.st_dev))
 	    >= sizeof(path))
 		ksft_exit_fail_msg("%s: Pathname is too long\n", __func__);
-	if (!read_file(path, buf, sizeof(buf)))
-		ksft_exit_fail_perror("read_file(uevent)");
+	ret = read_file(path, buf, sizeof(buf));
+	if (ret)
+		ksft_exit_fail_msg("read_file(%s): %s\n", path, strerror(-ret));
 	if (strstr(buf, "DEVTYPE=disk")) {
 		/* Found it */
 		if (snprintf(finfo.dev_queue_read_ahead_path,
@@ -324,7 +325,7 @@ static void *file_setup_area_common(int nr_hpages, enum file_setup_ops setup)
 {
 	const int open_opt = setup == FILE_SETUP_READ_ONLY_FS ? O_RDONLY : O_RDWR;
 	const int mmap_prot = setup == FILE_SETUP_READ_ONLY_FS ? PROT_READ : (PROT_READ | PROT_WRITE);
-	int fd;
+	int fd, ret;
 	void *p;
 	unsigned long size;
 
@@ -337,21 +338,15 @@ static void *file_setup_area_common(int nr_hpages, enum file_setup_ops setup)
 		ksft_exit_fail_perror("open()");
 
 	size = nr_hpages * hpage_pmd_size;
-	if (ftruncate(fd, size)) {
-		perror("ftruncate()");
-		exit(EXIT_FAILURE);
-	}
+	if (ftruncate(fd, size))
+		ksft_exit_fail_perror("ftruncate()");
 	p = mmap(BASE_ADDR, size, PROT_READ | PROT_WRITE,
 		MAP_SHARED, fd, 0);
-	if (p != BASE_ADDR) {
-		perror("mmap()");
-		exit(EXIT_FAILURE);
-	}
+	if (p != BASE_ADDR)
+		ksft_exit_fail_perror("mmap()");
 	fill_memory(p, 0, size);
-	if (msync(p, size, MS_SYNC)) {
-		perror("msync()");
-		exit(EXIT_FAILURE);
-	}
+	if (msync(p, size, MS_SYNC))
+		ksft_exit_fail_perror("msync()");
 	close(fd);
 	munmap(p, size);
 	success("OK");
@@ -368,7 +363,11 @@ static void *file_setup_area_common(int nr_hpages, enum file_setup_ops setup)
 		ksft_exit_fail_perror("mmap()");
 
 	/* Drop page cache */
-	write_file("/proc/sys/vm/drop_caches", "3", 2);
+	ret = write_file("/proc/sys/vm/drop_caches", "3", 2);
+	if (ret)
+		ksft_exit_fail_msg("write_file(drop_caches): %s\n",
+				   strerror(-ret));
+
 	success("OK");
 	return p;
 }
@@ -426,7 +425,7 @@ static bool file_check_huge(void *addr, size_t len, int nr_hpages,
 	case VMA_SHMEM:
 		return check_huge_shmem(addr, len, nr_hpages, hpage_size);
 	default:
-		exit(EXIT_FAILURE);
+		ksft_exit_fail_msg("Unknown VMA type\n");
 		return false;
 	}
 }
@@ -1227,7 +1226,7 @@ static void parse_test_type(int argc, char **argv)
 		return;
 	}
 
-	buf = strdup(argv[0]);
+	buf = argv[0];
 	token = strsep(&buf, ":");
 
 	if (!strcmp(token, "all")) {
