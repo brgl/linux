@@ -3,6 +3,7 @@
  * Copyright (c) 2024, Linaro Limited
  */
 
+#include <linux/delay.h>
 #include <linux/gpio/consumer.h>
 #include <linux/i2c.h>
 #include <linux/module.h>
@@ -29,7 +30,30 @@ static int ptn3222_init(struct phy *phy)
 	if (ret)
 		return ret;
 
+	/*
+	 * On cold boot a single reset pulse right after enabling the
+	 * supplies is not enough for the repeater to reliably come up
+	 * in pass-through mode: the eUSB2 host port gets stuck with
+	 * PORTSC.PR set (link stays in Polling) and the attached device
+	 * never enumerates, even though the chip is otherwise powered
+	 * and out of reset. A later full re-probe (repeater power and
+	 * reset cycled again while already warmed up) always recovers
+	 * cleanly, which points at the repeater's own POR/autonegotiation
+	 * state machine needing more than one reset cycle the first time
+	 * its supplies ramp from cold. Give it several reset pulses with
+	 * generous settle time to close that race.
+	 */
+	msleep(30);
 	gpiod_set_value_cansleep(ptn3222->reset_gpio, 0);
+	msleep(30);
+	gpiod_set_value_cansleep(ptn3222->reset_gpio, 1);
+	msleep(30);
+	gpiod_set_value_cansleep(ptn3222->reset_gpio, 0);
+	msleep(30);
+	gpiod_set_value_cansleep(ptn3222->reset_gpio, 1);
+	msleep(30);
+	gpiod_set_value_cansleep(ptn3222->reset_gpio, 0);
+	msleep(30);
 
 	return 0;
 }
