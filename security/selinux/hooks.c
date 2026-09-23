@@ -3110,13 +3110,13 @@ static int selinux_inode_init_security_anon(struct inode *inode,
 			    &ad);
 }
 
-static int selinux_inode_create(struct mnt_idmap *idmap, struct inode *dir,
+static int selinux_inode_create(const struct mnt_idmap *idmap, struct inode *dir,
 				struct dentry *dentry, umode_t mode)
 {
 	return may_create(dir, dentry, SECCLASS_FILE);
 }
 
-static int selinux_inode_link(struct mnt_idmap *idmap, struct dentry *old_dentry,
+static int selinux_inode_link(const struct mnt_idmap *idmap, struct dentry *old_dentry,
 			      struct inode *dir, struct dentry *new_dentry)
 {
 	return may_link(dir, old_dentry, MAY_LINK);
@@ -3127,13 +3127,13 @@ static int selinux_inode_unlink(struct inode *dir, struct dentry *dentry)
 	return may_link(dir, dentry, MAY_UNLINK);
 }
 
-static int selinux_inode_symlink(struct mnt_idmap *idmap, struct inode *dir,
+static int selinux_inode_symlink(const struct mnt_idmap *idmap, struct inode *dir,
 				 struct dentry *dentry, const char *name)
 {
 	return may_create(dir, dentry, SECCLASS_LNK_FILE);
 }
 
-static int selinux_inode_mkdir(struct mnt_idmap *idmap, struct inode *dir,
+static int selinux_inode_mkdir(const struct mnt_idmap *idmap, struct inode *dir,
 			       struct dentry *dentry, umode_t mask)
 {
 	return may_create(dir, dentry, SECCLASS_DIR);
@@ -3144,7 +3144,7 @@ static int selinux_inode_rmdir(struct inode *dir, struct dentry *dentry)
 	return may_link(dir, dentry, MAY_RMDIR);
 }
 
-static int selinux_inode_mknod(struct mnt_idmap *idmap, struct inode *dir,
+static int selinux_inode_mknod(const struct mnt_idmap *idmap, struct inode *dir,
 			       struct dentry *dentry, umode_t mode, dev_t dev)
 {
 	return may_create(dir, dentry, inode_mode_to_security_class(mode));
@@ -3284,7 +3284,7 @@ static inline void task_avdcache_update(struct task_security_struct *tsec,
  * Check if the current task is allowed to access @inode according to
  * @requested.  Returns 0 if allowed, negative values otherwise.
  */
-static int selinux_inode_permission(struct mnt_idmap *idmap,
+static int selinux_inode_permission(const struct mnt_idmap *idmap,
 				    struct inode *inode, int requested)
 {
 	int mask;
@@ -3842,7 +3842,7 @@ static int selinux_kernfs_init_security(struct kernfs_node *kn_dir,
 
 /* file security operations */
 
-static int selinux_revalidate_file_permission(struct file *file, int mask)
+static int selinux_revalidate_file_permission(const struct file *file, int mask)
 {
 	const struct cred *cred = current_cred();
 	struct inode *inode = file_inode(file);
@@ -3855,7 +3855,7 @@ static int selinux_revalidate_file_permission(struct file *file, int mask)
 			     file_mask_to_av(inode->i_mode, mask));
 }
 
-static int selinux_file_permission(struct file *file, int mask)
+static int selinux_file_permission(const struct file *file, int mask)
 {
 	struct inode *inode = file_inode(file);
 	struct file_security_struct *fsec = selinux_file(file);

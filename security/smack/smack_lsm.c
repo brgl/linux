@@ -1096,7 +1096,7 @@ instant_inode:
  *
  * Returns 0 if access is permitted, an error code otherwise
  */
-static int smack_inode_link(struct mnt_idmap *idmap, struct dentry *old_dentry,
+static int smack_inode_link(const struct mnt_idmap *idmap, struct dentry *old_dentry,
 			    struct inode *dir, struct dentry *new_dentry)
 {
 	struct smack_known *isp;
@@ -1235,7 +1235,7 @@ static int smack_inode_rename(struct inode *old_inode,
  *
  * Returns 0 if access is permitted, an error code otherwise
  */
-static int smack_inode_permission(struct mnt_idmap *idmap, struct inode *inode,
+static int smack_inode_permission(const struct mnt_idmap *idmap, struct inode *inode,
 				  int mask)
 {
 	struct superblock_smack *sbsp = smack_superblock(inode->i_sb);

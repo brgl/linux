@@ -1697,7 +1697,7 @@ void security_inode_post_create_tmpfile(const struct mnt_idmap *idmap,
  *
  * Return: Returns 0 if permission is granted.
  */
-int security_inode_link(struct mnt_idmap *idmap, struct dentry *old_dentry,
+int security_inode_link(const struct mnt_idmap *idmap, struct dentry *old_dentry,
 			struct inode *dir, struct dentry *new_dentry)
 {
 	if (unlikely(IS_PRIVATE(d_backing_inode(old_dentry))))
@@ -1732,7 +1732,7 @@ int security_inode_unlink(struct inode *dir, struct dentry *dentry)
  *
  * Return: Returns 0 if permission is granted.
  */
-int security_inode_symlink(struct mnt_idmap *idmap, struct inode *dir,
+int security_inode_symlink(const struct mnt_idmap *idmap, struct inode *dir,
 			   struct dentry *dentry, const char *old_name)
 {
 	if (unlikely(IS_PRIVATE(dir)))
@@ -1752,7 +1752,7 @@ int security_inode_symlink(struct mnt_idmap *idmap, struct inode *dir,
  *
  * Return: Returns 0 if permission is granted.
  */
-int security_inode_mkdir(struct mnt_idmap *idmap, struct inode *dir,
+int security_inode_mkdir(const struct mnt_idmap *idmap, struct inode *dir,
 			 struct dentry *dentry, umode_t mode)
 {
 	if (unlikely(IS_PRIVATE(dir)))
@@ -1792,7 +1792,7 @@ int security_inode_rmdir(struct inode *dir, struct dentry *dentry)
  *
  * Return: Returns 0 if permission is granted.
  */
-int security_inode_mknod(struct mnt_idmap *idmap, struct inode *dir,
+int security_inode_mknod(const struct mnt_idmap *idmap, struct inode *dir,
 			 struct dentry *dentry, umode_t mode, dev_t dev)
 {
 	if (unlikely(IS_PRIVATE(dir)))
@@ -1881,7 +1881,7 @@ int security_inode_follow_link(struct dentry *dentry, struct inode *inode,
  *
  * Return: Returns 0 if permission is granted.
  */
-int security_inode_permission(struct mnt_idmap *idmap, struct inode *inode,
+int security_inode_permission(const struct mnt_idmap *idmap, struct inode *inode,
 			      int mask)
 {
 	if (unlikely(IS_PRIVATE(inode)))
@@ -2434,7 +2434,7 @@ int security_kernfs_init_security(struct kernfs_node *kn_dir,
  *
  * Return: Returns 0 if permission is granted.
  */
-int security_file_permission(struct file *file, int mask)
+int security_file_permission(const struct file *file, int mask)
 {
 	return call_int_hook(file_permission, file, mask);
 }
