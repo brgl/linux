@@ -933,7 +933,7 @@ xrep_dinode_bad_bmbt_fork(
 
 		fkp = xfs_bmdr_key_addr(dfp, i);
 		fileoff = be64_to_cpu(fkp->br_startoff);
-		if (!xfs_verify_fileoff(sc->mp, fileoff))
+		if (!xfs_verify_fileoff(fileoff))
 			return true;
 
 		fpp = xfs_bmdr_ptr_addr(dfp, i, dmxr);
@@ -1405,7 +1405,7 @@ xrep_dinode_ensure_forkoff(
 			break;
 		case XFS_METAFILE_RTREFCOUNT:
 			rcdr = XFS_DFORK_PTR(dip, XFS_DATA_FORK);
-			dfork_min = xfs_rtrefcount_broot_space(sc->mp, rcdr);
+			dfork_min = xfs_rtrefcount_broot_space(rcdr);
 			break;
 		default:
 			dfork_min = 0;
@@ -1949,7 +1949,7 @@ xrep_inode_pptr(
 		return 0;
 
 	return xfs_bmap_add_attrfork(sc->tp, ip,
-			sizeof(struct xfs_attr_sf_hdr), true);
+			sizeof(struct xfs_attr_sf_hdr));
 }
 
 /* Fix COW extent size hint problems. */
