@@ -4602,10 +4602,10 @@ void gpiod_remove_lookup_table(struct gpiod_lookup_table *table)
 }
 EXPORT_SYMBOL_GPL(gpiod_remove_lookup_table);
 
-static bool gpiod_match_lookup_table(struct device *dev,
+static bool gpiod_match_lookup_table(struct device *dev, struct fwnode_handle *fwnode,
 				     const struct gpiod_lookup_table *table)
 {
-	const char *dev_id = dev ? dev_name(dev) : NULL;
+	const char *dev_id = dev ? dev_name(dev) : fwnode_get_name(fwnode);
 
 	lockdep_assert_held(&gpio_lookup_lock);
 
@@ -4693,8 +4693,9 @@ static struct gpio_desc *gpio_desc_table_match(struct device *dev, const char *c
 	return NULL;
 }
 
-static struct gpio_desc *gpiod_find(struct device *dev, const char *con_id,
-				    unsigned int idx, unsigned long *flags)
+static struct gpio_desc *gpiod_find(struct device *dev, struct fwnode_handle *fwnode,
+				    const char *con_id, unsigned int idx,
+				    unsigned long *flags)
 {
 	struct gpiod_lookup_table *table;
 	struct gpio_desc *desc;
@@ -4702,7 +4703,7 @@ static struct gpio_desc *gpiod_find(struct device *dev, const char *con_id,
 	guard(mutex)(&gpio_lookup_lock);
 
 	list_for_each_entry(table, &gpio_lookup_list, list) {
-		if (!gpiod_match_lookup_table(dev, table))
+		if (!gpiod_match_lookup_table(dev, fwnode, table))
 			continue;
 
 		desc = gpio_desc_table_match(dev, con_id, idx, flags, table);
@@ -4724,7 +4725,7 @@ static int platform_gpio_count(struct device *dev, const char *con_id)
 
 	scoped_guard(mutex, &gpio_lookup_lock) {
 		list_for_each_entry(table, &gpio_lookup_list, list) {
-			if (!gpiod_match_lookup_table(dev, table))
+			if (!gpiod_match_lookup_table(dev, NULL, table))
 				continue;
 
 			for (p = &table->table[0]; p->key; p++) {
@@ -4830,7 +4831,7 @@ struct gpio_desc *gpiod_find_and_request(struct device *consumer,
 			 */
 			dev_dbg(consumer,
 				"using lookup tables for GPIO lookup\n");
-			desc = gpiod_find(consumer, con_id, idx, &lookupflags);
+			desc = gpiod_find(consumer, fwnode, con_id, idx, &lookupflags);
 		}
 
 		if (IS_ERR(desc)) {
