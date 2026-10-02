@@ -3302,6 +3302,7 @@
 			reg = <0x0 0x08901000 0x0 0xe10>;
 			#phy-cells = <0>;
 			power-domains = <&scmi7_dvfs 0>;
+			power-domain-names = "serdes";
 			status = "disabled";
 		};
 
@@ -3310,6 +3311,7 @@
 			reg = <0x0 0x08902000 0x0 0xe10>;
 			#phy-cells = <0>;
 			power-domains = <&scmi8_dvfs 0>;
+			power-domain-names = "serdes";
 			status = "disabled";
 		};
 
