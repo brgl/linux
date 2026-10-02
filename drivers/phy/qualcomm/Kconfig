@@ -247,6 +247,7 @@ config PHY_QCOM_SGMII_ETH_SCMI
 	tristate "Qualcomm DWMAC SGMII SerDes/PHY driver (firmware managed)"
 	depends on OF && (ARCH_QCOM || COMPILE_TEST)
 	depends on PM_GENERIC_DOMAINS
+	depends on PM_OPP
 	select GENERIC_PHY
 	help
 	  Enable this to support the internal SerDes/SGMII PHY on Qualcomm

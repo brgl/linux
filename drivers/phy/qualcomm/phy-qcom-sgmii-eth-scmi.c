@@ -12,7 +12,7 @@
 #include <linux/phy.h>
 #include <linux/phy/phy.h>
 #include <linux/platform_device.h>
-#include <linux/pm_domain.h>
+#include <linux/pm_opp.h>
 #include <linux/pm_runtime.h>
 
 static int qcom_dwmac_sgmii_phy_scmi_validate(struct phy *phy, enum phy_mode mode,
@@ -36,17 +36,25 @@ static int qcom_dwmac_sgmii_phy_scmi_set_mode(struct phy *phy, enum phy_mode mod
 					      int submode)
 {
 	struct device *dev = phy->dev.parent;
-	unsigned int perf_state;
+	unsigned int level;
 	int ret;
 
 	ret = qcom_dwmac_sgmii_phy_scmi_validate(phy, mode, submode, NULL);
 	if (ret)
 		return ret;
 
-	perf_state = (submode == PHY_INTERFACE_MODE_2500BASEX) ?
-		     SPEED_2500 : SPEED_1000;
+	level = (submode == PHY_INTERFACE_MODE_2500BASEX) ?
+		SPEED_2500 : SPEED_1000;
 
-	return dev_pm_genpd_set_performance_state(dev, perf_state);
+	/*
+	 * The line rate is the only thing we control: firmware exposes it as a
+	 * performance level of the SCMI DVFS domain attached to this device.
+	 * Request it through the OPP API rather than poking the performance
+	 * state directly so that the level is validated against the OPP table
+	 * firmware provided at attach time - a domain that doesn't support the
+	 * requested rate fails here instead of silently reporting success.
+	 */
+	return dev_pm_opp_set_level(dev, level);
 }
 
 static const struct phy_ops qcom_dwmac_sgmii_phy_scmi_ops = {
@@ -55,11 +63,21 @@ static const struct phy_ops qcom_dwmac_sgmii_phy_scmi_ops = {
 	.owner		= THIS_MODULE,
 };
 
-static void qcom_dwmac_sgmii_phy_scmi_reset_perf_state(void *data)
+static void qcom_dwmac_sgmii_phy_scmi_drop_level(void *data)
 {
 	struct device *dev = data;
 
-	dev_pm_genpd_set_performance_state(dev, 0);
+	/*
+	 * Drop this device's contribution to the domain's aggregated
+	 * performance level so that it doesn't outlive the driver binding.
+	 *
+	 * Note this doesn't reach firmware: SCMI has no way of releasing a
+	 * performance level - 0 is not a valid one - so the SCMI performance
+	 * domain ignores it. Nothing is leaked either way: the SerDes supplies
+	 * and its reference clock are owned by firmware and tied to the MAC's
+	 * SCMI power domains, not to the DVFS domain used here.
+	 */
+	dev_pm_opp_set_opp(dev, NULL);
 }
 
 static int qcom_dwmac_sgmii_phy_scmi_probe(struct platform_device *pdev)
@@ -69,19 +87,31 @@ static int qcom_dwmac_sgmii_phy_scmi_probe(struct platform_device *pdev)
 	struct phy *phy;
 	int ret;
 
-	ret = devm_add_action_or_reset(dev, qcom_dwmac_sgmii_phy_scmi_reset_perf_state, dev);
-	if (ret)
-		return ret;
+	/*
+	 * The domain attached to this device by the driver core must be an SCMI
+	 * DVFS domain: the only knob this driver has is the SerDes line rate,
+	 * which firmware exposes as a performance level. The SCMI performance
+	 * domain populates our OPP table while attaching, so an empty or
+	 * missing table means the device tree points us at something else.
+	 */
+	ret = dev_pm_opp_get_opp_count(dev);
+	if (ret <= 0)
+		return dev_err_probe(dev, ret ?: -ENODEV,
+				     "no performance levels available\n");
 
 	/*
 	 * Enable runtime PM on the provider before creating the PHY so that the
-	 * PHY core enables runtime PM on the PHY device too. The single SCMI
-	 * power domain has already been attached to this device by the driver
-	 * core, so runtime PM votes propagate to firmware through the genpd
-	 * device link. No register or clock access is done here - firmware owns
-	 * the SerDes.
+	 * PHY core enables runtime PM on the PHY device too and so that genpd
+	 * saves and restores the requested performance level across runtime
+	 * suspend. No register or clock access is done here - firmware owns the
+	 * SerDes and brings its supplies and reference clock up together with
+	 * the MAC's SCMI power domains.
 	 */
 	ret = devm_pm_runtime_enable(dev);
+	if (ret)
+		return ret;
+
+	ret = devm_add_action_or_reset(dev, qcom_dwmac_sgmii_phy_scmi_drop_level, dev);
 	if (ret)
 		return ret;
 
