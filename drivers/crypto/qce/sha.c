@@ -7,6 +7,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/interrupt.h>
 #include <linux/string.h>
+#include <linux/unaligned.h>
 #include <crypto/internal/hash.h>
 
 #include "common.h"
@@ -264,7 +265,7 @@ static int qce_ahash_finalize_zero(struct ahash_request *req)
 	HASH_FBREQ_ON_STACK(fbreq, req);
 	struct __sha256_ctx core;
 	struct scatterlist sg;
-	int ret;
+	int ret, i;
 
 	/* Nothing to hash: an empty, terminated entry that has no page. */
 	sg_init_table(&sg, 1);
@@ -277,7 +278,13 @@ static int qce_ahash_finalize_zero(struct ahash_request *req)
 			.bytecount = rctx->count,
 		};
 
-		memcpy(&core.state, rctx->digest, sizeof(core.state));
+		/*
+		 * rctx->digest is the raw big-endian dump of the engine's
+		 * digest registers, the library state is in CPU byte order.
+		 */
+		for (i = 0; i < SHA256_STATE_WORDS; i++)
+			core.state.h[i] = get_unaligned_be32(rctx->digest +
+							     i * sizeof(u32));
 		if (IS_SHA_HMAC(rctx->flags))
 			core.bytecount += SHA256_BLOCK_SIZE;
 
