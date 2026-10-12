@@ -37,7 +37,7 @@ static int ntfs_write_ea(struct ntfs_inode *ni, __le32 type, char *value, s64 ea
 		struct ntfs_inode *ea_ni = NTFS_I(ea_vi);
 
 		if (need_truncate && ea_ni->data_size > ea_off + ea_size)
-			ntfs_attr_truncate(ea_ni, ea_off + ea_size);
+			err = ntfs_attr_truncate(ea_ni, ea_off + ea_size);
 		mark_mft_record_dirty(ni);
 	}
 
@@ -246,7 +246,7 @@ create_ea_info:
 			goto out;
 
 		if (ntfs_attr_exist(ni, AT_EA, AT_UNNAMED, 0)) {
-			err = ntfs_attr_remove(ni, AT_EA, AT_UNNAMED, 0);
+			err = ntfs_attr_remove(ni, AT_EA, AT_UNNAMED, 0, NULL);
 			if (err)
 				goto out;
 		}
@@ -301,11 +301,12 @@ create_ea_info:
 		p_ea_info->ea_query_length = cpu_to_le32(ea_info_qsize);
 
 		if ((flags & XATTR_REPLACE) && !val_size && !ea_info_qsize) {
-			err = ntfs_attr_remove(ni, AT_EA, AT_UNNAMED, 0);
+			err = ntfs_attr_remove(ni, AT_EA, AT_UNNAMED, 0, NULL);
 			if (err)
 				goto out;
 
-			err = ntfs_attr_remove(ni, AT_EA_INFORMATION, AT_UNNAMED, 0);
+			err = ntfs_attr_remove(ni, AT_EA_INFORMATION, AT_UNNAMED,
+					0, NULL);
 			if (err) {
 				/* Restore the original $EA if $EA_INFORMATION removal failed. */
 				ntfs_attr_add(ni, AT_EA, AT_UNNAMED, 0, old_ea_buf,
@@ -610,6 +611,14 @@ static int ntfs_getxattr(const struct xattr_handler *handler,
 	struct ntfs_inode *ni = NTFS_I(inode);
 	int err;
 
+	/*
+	 * Stream permissions and privileges belong to the base inode. This
+	 * also lets VFS killpriv helpers find the base security attributes.
+	 */
+	if (ntfs_inode_is_named_stream(ni)) {
+		ni = ni->ext.base_ntfs_ino;
+		inode = VFS_I(ni);
+	}
 	if (NVolShutdown(ni->vol))
 		return -EIO;
 
@@ -716,8 +725,8 @@ static int ntfs_new_attr_flags(struct ntfs_inode *ni, __le32 fattr)
 			goto err_out;
 
 		ntfs_attr_reinit_search_ctx(ctx);
-		err = ntfs_attr_lookup(ni->type, ni->name,
-				ni->name_len, CASE_SENSITIVE,
+		err = ntfs_attr_lookup(ni->type, ni->name, ni->name_len,
+				CASE_SENSITIVE,
 				0, NULL, 0, ctx);
 		if (err) {
 			err = -EINVAL;
@@ -875,7 +884,7 @@ static int ntfs_validate_fattr(struct ntfs_inode *ni, __le32 fattr)
 }
 
 static int ntfs_setxattr(const struct xattr_handler *handler,
-		struct mnt_idmap *idmap, struct dentry *unused,
+		const struct mnt_idmap *idmap, struct dentry *unused,
 		struct inode *inode, const char *name, const void *value,
 		size_t size, int flags)
 {
@@ -883,6 +892,8 @@ static int ntfs_setxattr(const struct xattr_handler *handler,
 	int err;
 	__le32 fattr;
 
+	if (ntfs_inode_is_named_stream(ni))
+		return -EOPNOTSUPP;
 	if (NVolShutdown(ni->vol))
 		return -EIO;
 
@@ -977,7 +988,7 @@ const struct xattr_handler * const ntfs_xattr_handlers[] = {
 // clang-format on
 
 #ifdef CONFIG_NTFS_FS_POSIX_ACL
-struct posix_acl *ntfs_get_acl(struct mnt_idmap *idmap, struct dentry *dentry,
+struct posix_acl *ntfs_get_acl(const struct mnt_idmap *idmap, struct dentry *dentry,
 			       int type)
 {
 	struct inode *inode = d_inode(dentry);
@@ -1021,7 +1032,7 @@ struct posix_acl *ntfs_get_acl(struct mnt_idmap *idmap, struct dentry *dentry,
 	return acl;
 }
 
-static noinline int ntfs_set_acl_ex(struct mnt_idmap *idmap,
+static noinline int ntfs_set_acl_ex(const struct mnt_idmap *idmap,
 				    struct inode *inode, struct posix_acl *acl,
 				    int type, bool init_acl)
 {
@@ -1103,13 +1114,13 @@ out:
 	return err;
 }
 
-int ntfs_set_acl(struct mnt_idmap *idmap, struct dentry *dentry,
+int ntfs_set_acl(const struct mnt_idmap *idmap, struct dentry *dentry,
 		 struct posix_acl *acl, int type)
 {
 	return ntfs_set_acl_ex(idmap, d_inode(dentry), acl, type, false);
 }
 
-int ntfs_init_acl(struct mnt_idmap *idmap, struct inode *inode,
+int ntfs_init_acl(const struct mnt_idmap *idmap, struct inode *inode,
 		  struct inode *dir)
 {
 	struct posix_acl *default_acl, *acl;
