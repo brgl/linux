@@ -18,7 +18,7 @@ static const char *const qce_core_aux_devs[] = { "crypto", NULL };
 
 static int qce_core_probe(struct platform_device *pdev)
 {
-	static const char *const *subdev;
+	const char *const *subdev;
 	struct auxiliary_device *auxdev;
 	struct device *dev = &pdev->dev;
 	struct icc_path *mem_path;
