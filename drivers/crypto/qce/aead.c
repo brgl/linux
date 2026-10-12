@@ -530,7 +530,7 @@ static int qce_aead_crypt(struct aead_request *req, int encrypt)
 	 * payload makes the engine stall waiting for input, so route those
 	 * requests to the fallback.
 	 */
-	if (IS_CCM(rctx->flags) && rctx->cryptlen) {
+	if (IS_CCM(rctx->flags)) {
 		authsize = ctx->authsize;
 
 		msg_sg = scatterwalk_ffwd(__sg, req->src, req->assoclen);
