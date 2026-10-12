@@ -266,7 +266,8 @@ static int qce_ahash_finalize_zero(struct ahash_request *req)
 	struct scatterlist sg;
 	int ret;
 
-	sg_init_one(&sg, NULL, 0);
+	/* Nothing to hash: an empty, terminated entry that has no page. */
+	sg_init_table(&sg, 1);
 	ahash_request_set_crypt(fbreq, &sg, req->result, 0);
 
 	if (rctx->first_blk) {
