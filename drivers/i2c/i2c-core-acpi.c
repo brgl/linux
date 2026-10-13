@@ -371,6 +371,8 @@ static const struct acpi_device_id i2c_acpi_force_100khz_device_ids[] = {
 	 * the device works without issues on Windows at what is expected to be
 	 * a 400KHz frequency. The root cause of the issue is not known.
 	 */
+	{ "ASUE140D", 0 },
+	{ "DELL0A86", 0 },
 	{ "DLL0945", 0 },
 	{ "ELAN0678", 0 },
 	{ "ELAN06FA", 0 },
@@ -607,7 +609,7 @@ static int acpi_gsb_i2c_read_bytes(struct i2c_client *client,
 	msgs[0].buf = &cmd;
 
 	msgs[1].addr = client->addr;
-	msgs[1].flags = client->flags | I2C_M_RD;
+	msgs[1].flags = client->flags | I2C_M_RD | I2C_M_DMA_SAFE;
 	msgs[1].len = data_len;
 	msgs[1].buf = buffer;
 
@@ -648,7 +650,7 @@ static int acpi_gsb_i2c_write_bytes(struct i2c_client *client,
 	memcpy(buffer + 1, data, data_len);
 
 	msgs[0].addr = client->addr;
-	msgs[0].flags = client->flags;
+	msgs[0].flags = client->flags | I2C_M_DMA_SAFE;
 	msgs[0].len = data_len + 1;
 	msgs[0].buf = buffer;
 
