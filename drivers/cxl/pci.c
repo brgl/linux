@@ -515,6 +515,7 @@ static irqreturn_t cxl_event_thread(int irq, void *id)
 	struct cxl_dev_id *dev_id = id;
 	struct cxl_dev_state *cxlds = dev_id->cxlds;
 	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlds);
+	bool handled = false;
 	u32 status;
 
 	do {
@@ -527,11 +528,13 @@ static irqreturn_t cxl_event_thread(int irq, void *id)
 		status &= CXLDEV_EVENT_STATUS_ALL;
 		if (!status)
 			break;
+
+		handled = true;
 		cxl_mem_get_event_records(mds, status);
 		cond_resched();
 	} while (status);
 
-	return IRQ_HANDLED;
+	return handled ? IRQ_HANDLED : IRQ_NONE;
 }
 
 static int cxl_event_req_irq(struct cxl_dev_state *cxlds, u8 setting)
@@ -706,20 +709,21 @@ static ssize_t rcd_pcie_cap_emit(struct device *dev, u16 offset, char *buf, size
 	struct device *root_dev;
 	struct cxl_dport *dport;
 	struct cxl_port *root __free(put_cxl_port) =
-		cxl_mem_find_port(cxlmd, &dport);
+		cxl_mem_find_port(cxlmd);
 
 	if (!root)
 		return -ENXIO;
 
-	root_dev = root->uport_dev;
+	root_dev = cxl_port_dport_host(root);
 	if (!root_dev)
-		return -ENXIO;
-
-	if (!dport->regs.rcd_pcie_cap)
 		return -ENXIO;
 
 	guard(device)(root_dev);
 	if (!root_dev->driver)
+		return -ENXIO;
+
+	dport = cxl_mem_find_dport(cxlmd, root);
+	if (!dport || !dport->regs.rcd_pcie_cap)
 		return -ENXIO;
 
 	switch (width) {
