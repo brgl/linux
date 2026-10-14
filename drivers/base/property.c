@@ -543,6 +543,25 @@ int fwnode_property_match_string(const struct fwnode_handle *fwnode,
 EXPORT_SYMBOL_GPL(fwnode_property_match_string);
 
 /**
+ * fwnode_property_get_names - get the list of all properties of this fwnode
+ * @fwnode: Firware node to get the list of properties for
+ * @props: Pointer to an array of strings. It will contain the address of the
+ * 	   string list containing the property names.
+ *
+ * Return: Number of property names written into *props. If > 0, the caller must
+ * 	   free the array with kfree_strarray().
+ * 	   %-EINVAL if arguments are not valid
+ */
+int fwnode_property_get_names(const struct fwnode_handle *fwnode, char ***props)
+{
+	if (IS_ERR_OR_NULL(fwnode))
+		return -EINVAL;
+
+	return fwnode_call_int_op(fwnode, property_get_names, props);
+}
+EXPORT_SYMBOL_GPL(fwnode_property_get_names);
+
+/**
  * fwnode_property_match_property_string - find a property string value in an array and return index
  * @fwnode: Firmware node to get the property of
  * @propname: Name of the property holding the string value
