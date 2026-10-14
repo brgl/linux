@@ -23,6 +23,7 @@
 #include <linux/property.h>
 #include <linux/slab.h>
 #include <linux/string.h>
+#include <linux/string_helpers.h>
 
 #include "gpiolib.h"
 #include "gpiolib-shared.h"
@@ -133,24 +134,24 @@ static int gpio_shared_setup_reset_proxy(struct gpio_shared_entry *entry,
 }
 
 /* Handle all special nodes that we should ignore. */
-static bool gpio_shared_of_node_ignore(struct device_node *node)
+static bool gpio_shared_fwnode_node_ignore(struct fwnode_handle *fwnode)
 {
 	/* Ignore disabled devices. */
-	if (!of_device_is_available(node))
+	if (!fwnode_device_is_available(fwnode))
 		return true;
 
 	/*
-	 * __symbols__ is a special, internal node and should not be considered
-	 * when scanning for shared GPIOs.
+	 * On OF-systems __symbols__ is a special, internal node and should not
+	 * be considered when scanning for shared GPIOs.
 	 */
-	if (of_node_name_eq(node, "__symbols__"))
+	if (fwnode_name_eq(fwnode, "__symbols__"))
 		return true;
 
 	/*
 	 * GPIO hogs have a "gpios" property which is not a phandle and can't
 	 * possibly refer to a shared GPIO.
 	 */
-	if (of_property_present(node, "gpio-hog"))
+	if (fwnode_property_present(fwnode, "gpio-hog"))
 		return true;
 
 	return false;
@@ -160,18 +161,27 @@ static int gpio_shared_of_traverse(struct device_node *curr)
 {
 	struct gpio_shared_entry *entry;
 	size_t con_id_len, suffix_len;
+	const char *suffix, *propname;
 	struct fwnode_handle *fwnode;
 	struct of_phandle_args args;
 	struct gpio_shared_ref *ref;
+	int ret, count, i, idx;
 	struct property *prop;
 	unsigned int offset;
-	const char *suffix;
-	int ret, count, i;
+	char **props;
 
-	if (gpio_shared_of_node_ignore(curr))
+	if (gpio_shared_fwnode_node_ignore(of_fwnode_handle(curr)))
 		return 0;
 
-	for_each_property_of_node(curr, prop) {
+	ret = fwnode_property_get_names(curr, &props);
+	if (ret <= 0)
+		return ret;
+
+	CLASS(kstrarray)(props, ret);
+
+	for (idx = 0; idx < kstrarray.size; idx++) {
+		propname = kstrarray.array[idx];
+
 		/*
 		 * The standard name for a GPIO property is "foo-gpios"
 		 * or "foo-gpio". Some bindings also use "gpios" or "gpio".
@@ -182,10 +192,8 @@ static int gpio_shared_of_traverse(struct device_node *curr)
 		 * them. We can always just export the quirk list and
 		 * iterate over it here.
 		 */
-		if (!strends(prop->name, "-gpios") &&
-		    !strends(prop->name, "-gpio") &&
-		    strcmp(prop->name, "gpios") != 0 &&
-		    strcmp(prop->name, "gpio") != 0)
+		if (!strends(propname, "-gpios") && !strends(propname, "-gpio") &&
+		    strcmp(propname, "gpios") != 0 && strcmp(propname, "gpio") != 0)
 			continue;
 
 		count = of_count_phandle_with_args(curr, prop->name,
