@@ -613,6 +613,13 @@ static void ethqos_fix_mac_speed_sgmii(void *bsp_priv,
 {
 	struct qcom_ethqos *ethqos = bsp_priv;
 
+	/* The link is up, so the SerDes now recovers the RX clock. Until this
+	 * point the loopback must stay on to keep clk_rx_i running for MAC
+	 * register handshakes done between open and link-up, like the VLAN
+	 * filter restore. This runs before the MAC's TX and RX are enabled.
+	 */
+	qcom_ethqos_set_sgmii_loopback(ethqos, false);
+
 	switch (speed) {
 	case SPEED_2500:
 	case SPEED_1000:
@@ -674,8 +681,6 @@ static int ethqos_mac_finish_serdes(struct net_device *ndev, void *priv,
 {
 	struct qcom_ethqos *ethqos = priv;
 	int ret = 0;
-
-	qcom_ethqos_set_sgmii_loopback(ethqos, false);
 
 	/* The interface mode is only known once phylink has resolved it and
 	 * may change at runtime, so keep it in sync for later
