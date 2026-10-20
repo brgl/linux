@@ -6641,6 +6641,7 @@ S:	Supported
 F:	fs/configfs/
 F:	include/linux/configfs.h
 F:	samples/configfs/
+F:	tools/testing/selftests/filesystems/configfs/
 
 CONFIGFS [RUST]
 M:	Andreas Hindborg <a.hindborg@kernel.org>
@@ -9721,14 +9722,14 @@ EROFS FILE SYSTEM
 M:	Gao Xiang <xiang@kernel.org>
 M:	Chao Yu <chao@kernel.org>
 R:	Yue Hu <zbestahu@gmail.com>
-R:	Jeffle Xu <jefflexu@linux.alibaba.com>
+R:	Jingbo Xu <jefflexu@163.com>
 R:	Sandeep Dhavale <dhavale@google.com>
 R:	Hongbo Li <hongbohbli@tencent.com>
 R:	Chunhai Guo <guochunhai@vivo.com>
 L:	linux-erofs@lists.ozlabs.org
 S:	Maintained
 W:	https://erofs.docs.kernel.org
-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs.git
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/xiang/erofs.git dev
 F:	Documentation/ABI/testing/sysfs-fs-erofs
 F:	Documentation/filesystems/erofs.rst
 F:	fs/erofs/
@@ -9877,6 +9878,7 @@ R:	Yuezhang Mo <yuezhang.mo@sony.com>
 L:	exfat@lists.linux.dev
 S:	Maintained
 T:	git git://git.kernel.org/pub/scm/linux/kernel/git/linkinjeon/exfat.git
+F:	Documentation/filesystems/exfat.rst
 F:	fs/exfat/
 
 EXPRESSWIRE PROTOCOL LIBRARY
@@ -9993,7 +9995,7 @@ S:	Maintained
 W:	https://f2fs.wiki.kernel.org/
 Q:	https://patchwork.kernel.org/project/f2fs/list/
 B:	https://bugzilla.kernel.org/enter_bug.cgi?product=File%20System&component=f2fs
-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jaegeuk/f2fs.git
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jaegeuk/f2fs.git dev
 F:	Documentation/ABI/testing/sysfs-fs-f2fs
 F:	Documentation/filesystems/f2fs.rst
 F:	fs/f2fs/
@@ -10024,6 +10026,7 @@ F:	net/core/failover.c
 FANOTIFY
 M:	Jan Kara <jack@suse.cz>
 R:	Amir Goldstein <amir73il@gmail.com>
+R:	Matt Bobrowski <matt@bobrowski.net>
 L:	linux-fsdevel@vger.kernel.org
 S:	Maintained
 F:	fs/notify/fanotify/
@@ -10705,7 +10708,8 @@ M:	Jaegeuk Kim <jaegeuk@kernel.org>
 L:	linux-fscrypt@vger.kernel.org
 S:	Supported
 Q:	https://patchwork.kernel.org/project/linux-fscrypt/list/
-T:	git https://git.kernel.org/pub/scm/fs/fscrypt/linux.git
+T:	git https://git.kernel.org/pub/scm/fs/fscrypt/linux.git for-next
+T:	git https://git.kernel.org/pub/scm/fs/fscrypt/linux.git for-current
 F:	Documentation/filesystems/fscrypt.rst
 F:	fs/crypto/
 F:	include/linux/fscrypt.h
@@ -10752,7 +10756,8 @@ M:	Theodore Y. Ts'o <tytso@mit.edu>
 L:	fsverity@lists.linux.dev
 S:	Supported
 Q:	https://patchwork.kernel.org/project/fsverity/list/
-T:	git https://git.kernel.org/pub/scm/fs/fsverity/linux.git
+T:	git https://git.kernel.org/pub/scm/fs/fsverity/linux.git for-next
+T:	git https://git.kernel.org/pub/scm/fs/fsverity/linux.git for-current
 F:	Documentation/filesystems/fsverity.rst
 F:	fs/verity/
 F:	include/linux/fsverity.h
@@ -14238,7 +14243,8 @@ L:	linux-nfs@vger.kernel.org
 S:	Supported
 P:	Documentation/filesystems/nfs/nfsd-maintainer-entry-profile.rst
 B:	https://bugzilla.kernel.org
-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/cel/linux.git
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/cel/linux.git nfsd-testing
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/cel/linux.git nfsd-next
 F:	Documentation/filesystems/nfs/
 F:	fs/lockd/
 F:	fs/nfs_common/
@@ -14255,6 +14261,7 @@ F:	include/uapi/linux/nfsd/
 F:	include/uapi/linux/sunrpc/
 F:	net/sunrpc/
 F:	tools/net/sunrpc/
+F:	tools/testing/selftests/nfsd/
 
 KERNEL NFSD BLOCK and SCSI LAYOUT DRIVER
 R:	Christoph Hellwig <hch@lst.de>
@@ -19595,6 +19602,7 @@ S:	Maintained
 T:	git git://git.kernel.org/pub/scm/linux/kernel/git/linkinjeon/ntfs.git
 F:	Documentation/filesystems/ntfs.rst
 F:	fs/ntfs/
+F:	include/uapi/linux/ntfs.h
 
 NTFS3 FILESYSTEM
 M:	Konstantin Komarov <almaz.alexandrovich@paragon-software.com>
@@ -19604,6 +19612,7 @@ W:	http://www.paragon-software.com/
 T:	git https://github.com/Paragon-Software-Group/linux-ntfs3.git
 F:	Documentation/filesystems/ntfs3.rst
 F:	fs/ntfs3/
+F:	include/trace/events/ntfs3.h
 
 NTSYNC SYNCHRONIZATION PRIMITIVE DRIVER
 M:	Elizabeth Figura <zfigura@codeweavers.com>
