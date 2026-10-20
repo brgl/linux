@@ -465,7 +465,7 @@ out:
 int ksmbd_vfs_stream_truncate(struct ksmbd_file *fp, loff_t newsize)
 {
 	const struct cred *saved_cred;
-	struct mnt_idmap *idmap = file_mnt_idmap(fp->filp);
+	const struct mnt_idmap *idmap = file_mnt_idmap(fp->filp);
 	char *stream_buf = NULL, *new_buf = NULL;
 	ssize_t v_len;
 	int err;

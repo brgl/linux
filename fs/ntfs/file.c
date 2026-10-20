@@ -197,7 +197,7 @@ static bool ntfs_is_forced_immutable(struct inode *vi)
  * @dentry:	dentry to set the flags of
  * @fa:		flags to set
  */
-int ntfs_fileattr_set(struct mnt_idmap *idmap, struct dentry *dentry,
+int ntfs_fileattr_set(const struct mnt_idmap *idmap, struct dentry *dentry,
 		      struct file_kattr *fa)
 {
 	struct inode *vi = d_inode(dentry);
