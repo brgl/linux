@@ -4712,20 +4712,20 @@ int tracer_init(struct tracer *t, struct trace_array *tr)
 	return t->init(tr);
 }
 
-void trace_set_buffer_entries(struct array_buffer *buf, unsigned long val)
+void trace_set_buffer_capacity(struct array_buffer *buf, unsigned long val)
 {
 	int cpu;
 
 	for_each_tracing_cpu(cpu)
-		per_cpu_ptr(buf->data, cpu)->entries = val;
+		per_cpu_ptr(buf->data, cpu)->capacity = val;
 }
 
-static void update_buffer_entries(struct array_buffer *buf, int cpu)
+static void update_buffer_capacity(struct array_buffer *buf, int cpu)
 {
 	if (cpu == RING_BUFFER_ALL_CPUS) {
-		trace_set_buffer_entries(buf, ring_buffer_size(buf->buffer, 0));
+		trace_set_buffer_capacity(buf, ring_buffer_capacity(buf->buffer, 0));
 	} else {
-		per_cpu_ptr(buf->data, cpu)->entries = ring_buffer_size(buf->buffer, cpu);
+		per_cpu_ptr(buf->data, cpu)->capacity = ring_buffer_capacity(buf->buffer, cpu);
 	}
 }
 
@@ -4781,12 +4781,12 @@ static int __tracing_resize_ring_buffer(struct trace_array *tr,
 		goto out_start;
 	}
 
-	update_buffer_entries(&tr->snapshot_buffer, cpu);
+	update_buffer_capacity(&tr->snapshot_buffer, cpu);
 
  out:
 #endif /* CONFIG_TRACER_SNAPSHOT */
 
-	update_buffer_entries(&tr->array_buffer, cpu);
+	update_buffer_capacity(&tr->array_buffer, cpu);
  out_start:
 	tracing_start_tr(tr);
 	return ret;
@@ -5688,8 +5688,7 @@ tracing_syscall_buf_write(struct file *filp, const char __user *ubuf,
 }
 
 static ssize_t
-tracing_entries_read(struct file *filp, char __user *ubuf,
-		     size_t cnt, loff_t *ppos)
+tracing_capacity_read(struct file *filp, char __user *ubuf, size_t cnt, loff_t *ppos)
 {
 	struct inode *inode = file_inode(filp);
 	struct trace_array *tr = inode->i_private;
@@ -5710,8 +5709,8 @@ tracing_entries_read(struct file *filp, char __user *ubuf,
 		for_each_tracing_cpu(cpu) {
 			/* fill in the size from first enabled cpu */
 			if (size == 0)
-				size = per_cpu_ptr(tr->array_buffer.data, cpu)->entries;
-			if (size != per_cpu_ptr(tr->array_buffer.data, cpu)->entries) {
+				size = per_cpu_ptr(tr->array_buffer.data, cpu)->capacity;
+			if (size != per_cpu_ptr(tr->array_buffer.data, cpu)->capacity) {
 				buf_size_same = 0;
 				break;
 			}
@@ -5727,7 +5726,7 @@ tracing_entries_read(struct file *filp, char __user *ubuf,
 		} else
 			r = sprintf(buf, "X\n");
 	} else
-		r = sprintf(buf, "%lu\n", per_cpu_ptr(tr->array_buffer.data, cpu)->entries >> 10);
+		r = sprintf(buf, "%lu\n", per_cpu_ptr(tr->array_buffer.data, cpu)->capacity >> 10);
 
 	mutex_unlock(&trace_types_lock);
 
@@ -5736,8 +5735,7 @@ tracing_entries_read(struct file *filp, char __user *ubuf,
 }
 
 static ssize_t
-tracing_entries_write(struct file *filp, const char __user *ubuf,
-		      size_t cnt, loff_t *ppos)
+tracing_capacity_write(struct file *filp, const char __user *ubuf, size_t cnt, loff_t *ppos)
 {
 	struct inode *inode = file_inode(filp);
 	struct trace_array *tr = inode->i_private;
@@ -5764,8 +5762,7 @@ tracing_entries_write(struct file *filp, const char __user *ubuf,
 }
 
 static ssize_t
-tracing_total_entries_read(struct file *filp, char __user *ubuf,
-				size_t cnt, loff_t *ppos)
+tracing_total_capacity_read(struct file *filp, char __user *ubuf, size_t cnt, loff_t *ppos)
 {
 	struct trace_array *tr = filp->private_data;
 	char buf[64];
@@ -5774,7 +5771,7 @@ tracing_total_entries_read(struct file *filp, char __user *ubuf,
 
 	mutex_lock(&trace_types_lock);
 	for_each_tracing_cpu(cpu) {
-		size += per_cpu_ptr(tr->array_buffer.data, cpu)->entries >> 10;
+		size += per_cpu_ptr(tr->array_buffer.data, cpu)->capacity >> 10;
 		if (!tr->ring_buffer_expanded)
 			expanded_size += trace_buf_size >> 10;
 	}
@@ -6616,10 +6613,10 @@ static const struct file_operations tracing_pipe_fops = {
 	.release	= tracing_release_pipe,
 };
 
-static const struct file_operations tracing_entries_fops = {
+static const struct file_operations tracing_capacity_fops = {
 	.open		= tracing_open_generic_tr,
-	.read		= tracing_entries_read,
-	.write		= tracing_entries_write,
+	.read		= tracing_capacity_read,
+	.write		= tracing_capacity_write,
 	.llseek		= generic_file_llseek,
 	.release	= tracing_release_generic_tr,
 };
@@ -6639,9 +6636,9 @@ static const struct file_operations tracing_buffer_meta_fops = {
 	.release	= tracing_seq_release,
 };
 
-static const struct file_operations tracing_total_entries_fops = {
+static const struct file_operations tracing_total_capacity_fops = {
 	.open		= tracing_open_generic_tr,
-	.read		= tracing_total_entries_read,
+	.read		= tracing_total_capacity_read,
 	.llseek		= generic_file_llseek,
 	.release	= tracing_release_generic_tr,
 };
@@ -7669,7 +7666,7 @@ tracing_init_tracefs_percpu(struct trace_array *tr, long cpu)
 				tr, cpu, &tracing_stats_fops);
 
 	trace_create_cpu_file("buffer_size_kb", TRACE_MODE_WRITE, d_cpu,
-				tr, cpu, &tracing_entries_fops);
+				tr, cpu, &tracing_capacity_fops);
 
 	if (tr->range_addr_start)
 		trace_create_cpu_file("buffer_meta", TRACE_MODE_READ, d_cpu,
@@ -8535,8 +8532,8 @@ int allocate_trace_buffer(struct trace_array *tr, struct array_buffer *buf, int 
 	}
 
 	/* Allocate the first page for all buffers */
-	trace_set_buffer_entries(&tr->array_buffer,
-				 ring_buffer_size(tr->array_buffer.buffer, 0));
+	trace_set_buffer_capacity(&tr->array_buffer,
+				  ring_buffer_capacity(tr->array_buffer.buffer, 0));
 
 	return 0;
 }
@@ -9014,10 +9011,10 @@ init_tracer_tracefs(struct trace_array *tr, struct dentry *d_tracer)
 			  tr, &tracing_pipe_fops);
 
 	trace_create_file("buffer_size_kb", writable_mode, d_tracer,
-			  tr, &tracing_entries_fops);
+			  tr, &tracing_capacity_fops);
 
 	trace_create_file("buffer_total_size_kb", TRACE_MODE_READ, d_tracer,
-			  tr, &tracing_total_entries_fops);
+			  tr, &tracing_total_capacity_fops);
 
 	trace_create_file("trace_clock", writable_mode, d_tracer, tr,
 			  &trace_clock_fops);
