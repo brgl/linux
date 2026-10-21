@@ -478,12 +478,7 @@ static void nvmem_sysfs_remove_compat(struct nvmem_device *nvmem)
 
 static int nvmem_populate_sysfs_cells(struct nvmem_device *nvmem)
 {
-	struct attribute_group group = {
-		.name	= "cells",
-	};
 	struct nvmem_cell_entry *entry;
-	const struct bin_attribute **pattrs;
-	struct bin_attribute *attrs;
 	unsigned int ncells = 0, i = 0;
 	int ret;
 
@@ -494,42 +489,70 @@ static int nvmem_populate_sysfs_cells(struct nvmem_device *nvmem)
 
 	/* Allocate an array of attributes with a sentinel */
 	ncells = list_count_nodes(&nvmem->cells);
-	pattrs = devm_kcalloc(&nvmem->dev, ncells + 1,
-			      sizeof(*pattrs), GFP_KERNEL);
+
+	const struct bin_attribute **pattrs __free(kfree) = kzalloc_objs(*pattrs, ncells + 1);
 	if (!pattrs)
 		return -ENOMEM;
 
-	attrs = devm_kcalloc(&nvmem->dev, ncells, sizeof(struct bin_attribute), GFP_KERNEL);
+	struct bin_attribute *attrs __free(kfree) = kzalloc_objs(*attrs, ncells);
 	if (!attrs)
 		return -ENOMEM;
 
 	/* Initialize each attribute to take the name and size of the cell */
 	list_for_each_entry(entry, &nvmem->cells, node) {
 		sysfs_bin_attr_init(&attrs[i]);
-		attrs[i].attr.name = devm_kasprintf(&nvmem->dev, GFP_KERNEL,
-						    "%s@%x,%x", entry->name,
-						    entry->offset,
-						    entry->bit_offset);
+		attrs[i].attr.name = kasprintf(GFP_KERNEL, "%s@%x,%x", entry->name,
+					       entry->offset, entry->bit_offset);
+		if (!attrs[i].attr.name) {
+			list_for_each_entry_continue_reverse(entry, &nvmem->cells, node)
+				kfree(attrs[--i].attr.name);
+			return -ENOMEM;
+		}
+
 		attrs[i].attr.mode = 0444 & nvmem_bin_attr_get_umode(nvmem);
 		attrs[i].size = entry->bytes;
 		attrs[i].read = &nvmem_cell_attr_read;
 		attrs[i].private = entry;
-		if (!attrs[i].attr.name)
-			return -ENOMEM;
 
 		pattrs[i] = &attrs[i];
 		i++;
 	}
 
-	group.bin_attrs = pattrs;
+	memset(&nvmem->sysfs_group, 0, sizeof(nvmem->sysfs_group));
+	nvmem->sysfs_group.name = "cells";
+	nvmem->sysfs_group.bin_attrs = pattrs;
 
-	ret = device_add_group(&nvmem->dev, &group);
-	if (ret)
+	ret = device_add_group(&nvmem->dev, &nvmem->sysfs_group);
+	if (ret) {
+		i = 0;
+		list_for_each_entry(entry, &nvmem->cells, node)
+			kfree(attrs[i++].attr.name);
 		return ret;
+	}
 
 	nvmem->sysfs_cells_populated = true;
+	nvmem->sysfs_attrs = no_free_ptr(attrs);
+	nvmem->sysfs_pattrs = no_free_ptr(pattrs);
 
 	return ret;
+}
+
+static void nvmem_sysfs_remove_cells(struct nvmem_device *nvmem)
+{
+	int i;
+
+	if (!nvmem->sysfs_cells_populated)
+		return;
+
+	device_remove_group(&nvmem->dev, &nvmem->sysfs_group);
+
+	for (i = 0; nvmem->sysfs_pattrs[i]; i++)
+		kfree(nvmem->sysfs_pattrs[i]->attr.name);
+
+	kfree(nvmem->sysfs_attrs);
+	kfree(nvmem->sysfs_pattrs);
+
+	nvmem->sysfs_cells_populated = false;
 }
 
 #else /* CONFIG_NVMEM_SYSFS */
@@ -540,6 +563,9 @@ static int nvmem_sysfs_setup_compat(struct nvmem_device *nvmem,
 	return -ENOSYS;
 }
 static void nvmem_sysfs_remove_compat(struct nvmem_device *nvmem)
+{
+}
+static void nvmem_sysfs_remove_cells(struct nvmem_device *nvmem)
 {
 }
 
@@ -1085,6 +1111,7 @@ void nvmem_unregister(struct nvmem_device *nvmem)
 	synchronize_srcu(&nvmem->srcu);
 
 	nvmem_sysfs_remove_compat(nvmem);
+	nvmem_sysfs_remove_cells(nvmem);
 	nvmem_destroy_layout(nvmem);
 	kfree(ops);
 

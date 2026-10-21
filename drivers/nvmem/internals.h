@@ -7,6 +7,7 @@
 #include <linux/nvmem-consumer.h>
 #include <linux/nvmem-provider.h>
 #include <linux/srcu.h>
+#include <linux/sysfs.h>
 
 /* Hold pointers to callbacks owned by the nvmem provider module. */
 struct nvmem_operations {
@@ -37,7 +38,12 @@ struct nvmem_device {
 	struct nvmem_layout	*layout;
 	struct nvmem_operations __rcu *ops;
 	void *priv;
+#if IS_ENABLED(CONFIG_NVMEM_SYSFS)
 	bool			sysfs_cells_populated;
+	struct attribute_group	sysfs_group;
+	struct bin_attribute	*sysfs_attrs;
+	const struct bin_attribute **sysfs_pattrs;
+#endif /* CONFIG_NVMEM_SYSFS */
 };
 
 int nvmem_add_cells_from_dt(struct nvmem_device *nvmem, struct device_node *np);
