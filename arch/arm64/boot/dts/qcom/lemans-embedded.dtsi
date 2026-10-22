@@ -458,6 +458,7 @@
 };
 
 &ethernet1 {
+	compatible = "qcom,sa8775p-ethqos";
 	clocks = <&gcc GCC_EMAC1_AXI_CLK>,
 		 <&gcc GCC_EMAC1_SLV_AHB_CLK>,
 		 <&gcc GCC_EMAC1_PTP_CLK>,
@@ -481,6 +482,7 @@
 };
 
 &ethernet0 {
+	compatible = "qcom,sa8775p-ethqos";
 	clocks = <&gcc GCC_EMAC0_AXI_CLK>,
 		 <&gcc GCC_EMAC0_SLV_AHB_CLK>,
 		 <&gcc GCC_EMAC0_PTP_CLK>,
