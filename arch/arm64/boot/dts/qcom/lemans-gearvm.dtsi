@@ -58,6 +58,14 @@
 	clock-names = "xo", "alternate";
 };
 
+&ethernet1 {
+	compatible = "qcom,sa8255p-ethqos";
+};
+
+&ethernet0 {
+	compatible = "qcom,sa8255p-ethqos";
+};
+
 &firmware {
 	scm {
 		memory-region = <&tz_ffi_mem>;
@@ -3223,6 +3231,26 @@
 		alignment = <0x0 0x400000>;
 		size = <0x0 0x2000000>;
 		linux,cma-default;
+	};
+};
+
+&soc {
+	serdes0: phy@8901000 {
+		compatible = "qcom,sa8255p-dwmac-sgmii-phy";
+		reg = <0x0 0x08901000 0x0 0xe10>;
+		#phy-cells = <0>;
+		power-domains = <&scmi7_dvfs 0>;
+		power-domain-names = "serdes";
+		status = "disabled";
+	};
+
+	serdes1: phy@8902000 {
+		compatible = "qcom,sa8255p-dwmac-sgmii-phy";
+		reg = <0x0 0x08902000 0x0 0xe10>;
+		#phy-cells = <0>;
+		power-domains = <&scmi8_dvfs 0>;
+		power-domain-names = "serdes";
+		status = "disabled";
 	};
 };
 
