@@ -276,8 +276,8 @@
 		};
 	};
 
-	firmware {
-		scm {
+	firmware: firmware {
+		scm: scm {
 			compatible = "qcom,scm-sa8775p", "qcom,scm";
 			qcom,dload-mode = <&tcsr 0x13000>;
 			sram = <&minidump_config>;
@@ -365,7 +365,7 @@
 		};
 	};
 
-	reserved-memory {
+	reserved_memory: reserved-memory {
 		#address-cells = <2>;
 		#size-cells = <2>;
 		ranges;
