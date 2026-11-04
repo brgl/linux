@@ -9,6 +9,7 @@
 #ifndef GPIOLIB_H
 #define GPIOLIB_H
 
+#include <linux/atomic.h>
 #include <linux/cdev.h>
 #include <linux/device.h>
 #include <linux/err.h>
@@ -222,6 +223,26 @@ struct gpio_desc {
 	unsigned int		debounce_period_us;
 #endif
 };
+
+/**
+ * gpiod_update_flags() - Atomically update several descriptor flags at once
+ * @desc: GPIO descriptor to update.
+ * @mask: Bits (not bit numbers) to modify.
+ * @val: New values for the bits selected by @mask.
+ *
+ * Replace the bits in @mask with the corresponding bits of @val in a single
+ * atomic step, so that no other context can observe a half-updated state of
+ * these bits. Bits outside of @mask are never rewritten with stale values, so
+ * concurrent atomic bit operations on them are preserved.
+ */
+static inline void gpiod_update_flags(struct gpio_desc *desc,
+				      unsigned long mask, unsigned long val)
+{
+	unsigned long old = READ_ONCE(desc->flags);
+
+	while (!try_cmpxchg(&desc->flags, &old, (old & ~mask) | (val & mask)))
+		;
+}
 
 #define gpiod_not_found(desc)		(IS_ERR(desc) && PTR_ERR(desc) == -ENOENT)
 
