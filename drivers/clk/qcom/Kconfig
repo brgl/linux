@@ -339,6 +339,16 @@ config CLK_SECA_NEGCC
 	  PHYs, SDCC4 and the QUPv3 wrapper 2 serial engines, including the debug
 	  UART. Say Y or M if you want to use any of these peripherals.
 
+config CLK_SECA_TCSRCC
+	tristate "SecaAU TCSR Clock Controller"
+	depends on ARM64 || COMPILE_TEST
+	default m if ARCH_QCOM
+	help
+	  Support for the TCSR clock controller on SecaAU devices. It gates
+	  the QREF reference clocks of the PCIe, UX SGMII, UFS, DP, USB3 and
+	  eUSB2 PHYs and votes the QREF supplies of each path.
+	  Say Y or M if you want to use any of these PHYs.
+
 config CLK_SHIKRA_GCC
 	tristate "Shikra Global Clock Controller"
 	depends on ARM64 || COMPILE_TEST
