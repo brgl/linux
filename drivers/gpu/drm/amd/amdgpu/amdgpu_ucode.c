@@ -1548,7 +1548,7 @@ static int amdgpu_ucode_set_suffix(struct amdgpu_device *adev, char *fname)
 		return 0;
 	}
 
-	if (!strends(fname, ".bin"))
+	if (!strsuffix(fname, ".bin"))
 		return -EINVAL;
 
 	base = strlen(fname) - strlen(".bin");
