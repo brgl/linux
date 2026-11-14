@@ -2848,7 +2848,7 @@ static int crypt_ctr_auth_cipher(struct crypt_config *cc, char *cipher_api)
 	char *start, *end, *mac_alg = NULL;
 	struct crypto_ahash *mac;
 
-	if (!strstarts(cipher_api, "authenc(")) {
+	if (!strprefix(cipher_api, "authenc(")) {
 		if (test_bit(CRYPT_KEY_MAC_SIZE_SET, &cc->cipher_flags))
 			return -EINVAL;
 		return 0;
@@ -3055,7 +3055,7 @@ static int crypt_ctr_cipher(struct dm_target *ti, char *cipher_in, char *key)
 		return -ENOMEM;
 	}
 
-	if (strstarts(cipher_in, "capi:"))
+	if (strprefix(cipher_in, "capi:"))
 		ret = crypt_ctr_cipher_new(ti, cipher_in, key, &ivmode, &ivopts);
 	else
 		ret = crypt_ctr_cipher_old(ti, cipher_in, key, &ivmode, &ivopts);

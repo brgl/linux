@@ -371,7 +371,7 @@ static ssize_t xe_sysctrl_mailbox_write(struct file *file, const char __user *ub
 	command = (u8)val;
 
 	token = sysctrl_mailbox_next_token(&tmp);
-	if (token && strstarts(token, "timeout=")) {
+	if (token && strprefix(token, "timeout=")) {
 		if (kstrtouint(token + strlen("timeout="), 0, &timeout_ms) ||
 		    timeout_ms > XE_SYSCTRL_MB_MAX_TIMEOUT_MS) {
 			xe_err(xe, "sysctrl: invalid mailbox timeout (max %u ms)\n",
@@ -381,7 +381,7 @@ static ssize_t xe_sysctrl_mailbox_write(struct file *file, const char __user *ub
 		token = sysctrl_mailbox_next_token(&tmp);
 	}
 
-	if (token && strstarts(token, "resplen=")) {
+	if (token && strprefix(token, "resplen=")) {
 		unsigned int resplen;
 
 		if (kstrtouint(token + strlen("resplen="), 0, &resplen) ||
