@@ -339,6 +339,17 @@ config CLK_SECA_NEGCC
 	  PHYs, SDCC4 and the QUPv3 wrapper 2 serial engines, including the debug
 	  UART. Say Y or M if you want to use any of these peripherals.
 
+config CLK_SECA_NWGCC
+	tristate "SecaAU North West Global Clock Controller"
+	depends on ARM64 || COMPILE_TEST
+	select QCOM_GDSC
+	default ARCH_QCOM
+	help
+	  Support for the North West global clock controller on SecaAU devices.
+	  It provides the clocks, resets and GDSCs of UFS, the QUPv3 wrappers 0,
+	  1 and 3 and the interfaces of the multimedia subsystems. Say Y or M if
+	  you want to use UFS storage or any of these peripherals on SecaAU.
+
 config CLK_SECA_TCSRCC
 	tristate "SecaAU TCSR Clock Controller"
 	depends on ARM64 || COMPILE_TEST
