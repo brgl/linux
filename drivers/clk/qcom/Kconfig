@@ -328,6 +328,17 @@ config CLK_NORD_VIDEOCC
 	  Say Y if you want to support video devices and functionality such as
 	  video encode/decode.
 
+config CLK_SECA_NEGCC
+	tristate "SecaAU North East Global Clock Controller"
+	depends on ARM64 || COMPILE_TEST
+	select QCOM_GDSC
+	default ARCH_QCOM
+	help
+	  Support for the North East global clock controller on SecaAU devices.
+	  It provides the clocks, resets and GDSCs of the USB controllers and
+	  PHYs, SDCC4 and the QUPv3 wrapper 2 serial engines, including the debug
+	  UART. Say Y or M if you want to use any of these peripherals.
+
 config CLK_SHIKRA_GCC
 	tristate "Shikra Global Clock Controller"
 	depends on ARM64 || COMPILE_TEST
