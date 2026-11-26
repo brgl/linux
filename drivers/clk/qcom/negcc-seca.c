@@ -629,21 +629,6 @@ static struct clk_branch ne_gcc_aggre_noc_usb3_sec_axi_clk = {
 	},
 };
 
-static struct clk_branch ne_gcc_ahb2phy_clk = {
-	.halt_reg = 0x30004,
-	.halt_check = BRANCH_HALT_VOTED,
-	.hwcg_reg = 0x30004,
-	.hwcg_bit = 1,
-	.clkr = {
-		.enable_reg = 0x30004,
-		.enable_mask = BIT(0),
-		.hw.init = &(const struct clk_init_data) {
-			.name = "ne_gcc_ahb2phy_clk",
-			.ops = &clk_branch2_ops,
-		},
-	},
-};
-
 static struct clk_branch ne_gcc_cnoc_usb2_axi_clk = {
 	.halt_reg = 0x31064,
 	.halt_check = BRANCH_HALT_VOTED,
@@ -1319,7 +1304,6 @@ static struct clk_regmap *ne_gcc_seca_clocks[] = {
 	[NE_GCC_AGGRE_NOC_USB2_AXI_CLK] = &ne_gcc_aggre_noc_usb2_axi_clk.clkr,
 	[NE_GCC_AGGRE_NOC_USB3_PRIM_AXI_CLK] = &ne_gcc_aggre_noc_usb3_prim_axi_clk.clkr,
 	[NE_GCC_AGGRE_NOC_USB3_SEC_AXI_CLK] = &ne_gcc_aggre_noc_usb3_sec_axi_clk.clkr,
-	[NE_GCC_AHB2PHY_CLK] = &ne_gcc_ahb2phy_clk.clkr,
 	[NE_GCC_CNOC_USB2_AXI_CLK] = &ne_gcc_cnoc_usb2_axi_clk.clkr,
 	[NE_GCC_CNOC_USB3_PRIM_AXI_CLK] = &ne_gcc_cnoc_usb3_prim_axi_clk.clkr,
 	[NE_GCC_CNOC_USB3_SEC_AXI_CLK] = &ne_gcc_cnoc_usb3_sec_axi_clk.clkr,
@@ -1427,7 +1411,13 @@ static const struct regmap_config ne_gcc_seca_regmap_config = {
 	.fast_io = true,
 };
 
+static const u32 ne_gcc_seca_critical_cbcrs[] = {
+	0x30004, /* NE_GCC_AHB2PHY_CLK */
+};
+
 static const struct qcom_cc_driver_data ne_gcc_seca_driver_data = {
+	.clk_cbcrs = ne_gcc_seca_critical_cbcrs,
+	.num_clk_cbcrs = ARRAY_SIZE(ne_gcc_seca_critical_cbcrs),
 	.dfs_rcgs = ne_gcc_seca_dfs_clocks,
 	.num_dfs_rcgs = ARRAY_SIZE(ne_gcc_seca_dfs_clocks),
 };
