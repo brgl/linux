@@ -60,8 +60,8 @@
 	vreg_l1h_0p9: regulator-l1h-0p9 {
 		compatible = "regulator-fixed";
 		regulator-name = "vreg_l1h_0p9";
-		regulator-min-microvolt = <904000>;
-		regulator-max-microvolt = <904000>;
+		regulator-min-microvolt = <900000>;
+		regulator-max-microvolt = <900000>;
 		regulator-always-on;
 	};
 
@@ -78,6 +78,14 @@
 		regulator-name = "vreg_l2h_1p2";
 		regulator-min-microvolt = <1200000>;
 		regulator-max-microvolt = <1200000>;
+		regulator-always-on;
+	};
+
+	vreg_px11_1p25: regulator-px11-1p25 {
+		compatible = "regulator-fixed";
+		regulator-name = "vreg_px11_1p25";
+		regulator-min-microvolt = <1250000>;
+		regulator-max-microvolt = <1250000>;
 		regulator-always-on;
 	};
 };
@@ -97,7 +105,7 @@
 };
 
 &tcsrcc {
-	vdda-qref-1p2-supply = <&vreg_l2h_1p2>;
+	vdda-qref-1p2-supply = <&vreg_px11_1p25>;
 	vdda-qref0-0p9-supply = <&vreg_l1h_0p9>;
 	vdda-qref1-0p9-supply = <&vreg_l1h_0p9>;
 	vdda-qref2-0p9-supply = <&vreg_l1h_0p9>;
