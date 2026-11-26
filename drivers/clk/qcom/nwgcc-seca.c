@@ -767,19 +767,6 @@ static struct clk_regmap_div nw_gcc_qupv3_wrap3_s0_clk_src = {
 	},
 };
 
-static struct clk_branch nw_gcc_acmu_mux_clk = {
-	.halt_reg = 0x1f01c,
-	.halt_check = BRANCH_HALT,
-	.clkr = {
-		.enable_reg = 0x1f01c,
-		.enable_mask = BIT(0),
-		.hw.init = &(const struct clk_init_data) {
-			.name = "nw_gcc_acmu_mux_clk",
-			.ops = &clk_branch2_ops,
-		},
-	},
-};
-
 static struct clk_branch nw_gcc_aggre_noc_ufs_0_phy_axi_clk = {
 	.halt_reg = 0x520f8,
 	.halt_check = BRANCH_HALT_VOTED,
@@ -1933,7 +1920,6 @@ static struct gdsc nw_gcc_ufs_1_phy_gdsc = {
 };
 
 static struct clk_regmap *nw_gcc_seca_clocks[] = {
-	[NW_GCC_ACMU_MUX_CLK] = &nw_gcc_acmu_mux_clk.clkr,
 	[NW_GCC_AGGRE_NOC_UFS_0_PHY_AXI_CLK] = &nw_gcc_aggre_noc_ufs_0_phy_axi_clk.clkr,
 	[NW_GCC_AGGRE_NOC_UFS_1_PHY_AXI_CLK] = &nw_gcc_aggre_noc_ufs_1_phy_axi_clk.clkr,
 	[NW_GCC_CAMERA_HF_AXI_CLK] = &nw_gcc_camera_hf_axi_clk.clkr,
