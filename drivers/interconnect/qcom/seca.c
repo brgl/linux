@@ -750,13 +750,6 @@ static struct qcom_icc_node qhm_qspi = {
 	.name = "qhm_qspi",
 	.channels = 1,
 	.buswidth = 4,
-	.qosbox = &(const struct qcom_icc_qosbox) {
-		.num_ports = 1,
-		.port_offsets = { 0x14000 },
-		.prio = 2,
-		.urg_fwd = 0,
-		.prio_fwd_disable = 1,
-	},
 	.num_links = 1,
 	.link_nodes = { &qns_a1noc_hscnoc },
 };
@@ -1849,6 +1842,7 @@ static const struct qcom_icc_desc seca_aggre2_noc_tile = {
 	.num_nodes = ARRAY_SIZE(aggre2_noc_tile_nodes),
 	.bcms = aggre2_noc_tile_bcms,
 	.num_bcms = ARRAY_SIZE(aggre2_noc_tile_bcms),
+	.qos_requires_clocks = true,
 };
 
 static struct qcom_icc_bcm * const clk_virt_bcms[] = {
